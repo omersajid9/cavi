@@ -31,6 +31,23 @@ contextBridge.exposeInMainWorld("api", {
         // Deliberately strip event as it includes `sender` 
         ipcRenderer.on(channel, (event, ...args) => func(...args));
     }
-}
+  },
+  pushClipToDB : (data) =>
+  {
+    ipcRenderer.send('pushClip', data);
+  },
+  findClipFromDB: async () =>
+  {
+    try
+    {
+      const data = await ipcRenderer.invoke('fetch-data');
+      return data
+    }
+    catch (error)
+    {
+      console.log("PRELOAD ERROR FINDCLIPFROMDB", error)
+    }
+  },
+  search: async (term) => await ipcRenderer.invoke('search', term)
 
 });

@@ -119,6 +119,7 @@
   "dependencies": {
     "@loadable/component": "^5.15.2",
     "@reduxjs/toolkit": "^1.8.3",
+    "@types/nedb": "^1.8.16",
     "bulma": "^0.9.4",
     "easy-redux-undo": "^1.0.5",
     "electron-devtools-installer": "^3.2.0",
@@ -130,6 +131,7 @@
     "i18next-fs-backend": "^1.1.4",
     "lodash": "4.17.21",
     "lodash.merge": "^4.6.2",
+    "nedb-promises": "^6.2.3",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

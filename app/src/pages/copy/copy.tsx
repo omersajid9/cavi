@@ -1,15 +1,14 @@
 import './copy.css'
 import React, { ChangeEvent, FormEvent } from "react";
 import { ConnectedProps, connect } from "react-redux";
-import { useConfigInMainRequest } from "secure-electron-store";
-import { setCopySnippetTitle, setCopyCurrentVariableName } from "../../redux/components/copy/copySlice";
+import { useConfigInMainRequest, deleteConfigRequest } from "secure-electron-store";
+import { setCopySnippetTitle, setCopyCurrentVariableName, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight } from "../../redux/components/copy/copySlice";
 import { RootState, store } from "../../redux/store/store";
 import Textarea from "../../components/copy/textarea";
 import getFromClipboard from "../../helpers/clipboard";
 import { createVariable } from '../../helpers/copy';
 
 import { exportDbToLocal, importDbFromLocal } from '../../helpers/db';
-import { exportSearchToLocal, importSearchFromLocal } from '../../helpers/search';
 import { pushClip } from '../../helpers/copy';
 
 const mapStateToProps = (state: RootState) => ({
@@ -17,7 +16,7 @@ const mapStateToProps = (state: RootState) => ({
     search: state.search
 })
 
-const mapDispatch = { setCopySnippetTitle, setCopyCurrentVariableName };
+const mapDispatch = { setCopySnippetTitle, setCopyCurrentVariableName, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight };
 const connector = connect(mapStateToProps, mapDispatch);
 
 type PropsFromRedux = ConnectedProps<typeof connector>
@@ -69,10 +68,16 @@ class Copy extends React.Component<Props, State>
     onSubmitSnippet(event: FormEvent<HTMLFormElement>)
     {
         event.preventDefault();
+        window.api.store.send(deleteConfigRequest);
+
         pushClip();
-        // console.log("AFTER SUBMIT", this.props.search.index.search("a"));
-        exportDbToLocal()
-        exportSearchToLocal()
+
+        this.setState((_state)=> ({currentVariableName: "", snippetTitle: ""}));
+
+        this.props.clearCopyCurrentHighlight();
+        this.props.clearCopyCurrentVariable();
+        this.props.clearCopySnippet();
+
         window.api.store.send(useConfigInMainRequest);
 
     }
@@ -90,39 +95,23 @@ class Copy extends React.Component<Props, State>
     {
         event.preventDefault();
         createVariable();
+        this.props.clearCopyCurrentHighlight();
+        this.props.clearCopyCurrentVariable();
+
     }
 
-    onSearch()
+    async onSearch()
     {
-    }
-
-    // static getDerivedStateFromProps(nextProps: Props, prevState: State): void
-    // {
-    //     // importDbFromLocal();
-    //     // importSearchFromLocal();
-    // }
-
-    async componentWillUnmount(): Promise<void> 
-    {
-        try
-        {
-
-            await exportDbToLocal();
-            await exportSearchToLocal();
-            console.log("componentWillUnmount")
-        }
-        catch (err)
-        {
-
-        }
+        window.api.search('hello')
+        .then((results: any) => {
+            // use results
+            console.log(results)
+        });
     }
     
     componentDidMount()
     {
-        console.log("constructor")
-        importDbFromLocal();
-        importSearchFromLocal();
-        
+
         let billo = getFromClipboard()
         // While loop for repeated cals untill we get the latest copy
         while (!billo)
@@ -130,8 +119,6 @@ class Copy extends React.Component<Props, State>
             billo = getFromClipboard()
         }
         window.api.store.send(useConfigInMainRequest);
-        // exportDbToLocal();
-        // exportSearchToLocal();
 
     }
 
@@ -140,7 +127,7 @@ class Copy extends React.Component<Props, State>
         return (
             <React.Fragment>
                 <div className="">
-                    <button onClick={this.onSearch}>YO</button>
+                    <button onClick={this.onSearch}>CONSOLE LOG DATABASE</button>
                         {/* SNIPPET */}
                         <div className=''>
                             <form className='mb-4' onSubmit={this.onSubmitSnippet}>

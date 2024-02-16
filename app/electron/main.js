@@ -25,6 +25,8 @@ const crypto = require("crypto");
 const isDev = process.env.NODE_ENV === "development";
 const port = 40992; // Hardcoded; needs to match webpack.development.js and package.json
 const selfHost = `http://localhost:${port}`;
+const { dbFactory, pushClip, findAll } = require('./db/db');
+
 
 const {
   COPY_SHORTCUT,
@@ -35,6 +37,12 @@ const {
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
 let menuBuilder;
+
+// db.deleteMany({});
+
+
+
+
 
 async function createWindow() {
 
@@ -48,6 +56,8 @@ async function createWindow() {
     // protocol is only used in prod
     protocol.registerBufferProtocol(Protocol.scheme, Protocol.requestHandler); /* eng-disable PROTOCOL_HANDLER_JS_CHECK */
   }
+
+
 
   const store = new Store({
     path: app.getPath("userData"),
@@ -69,7 +79,7 @@ async function createWindow() {
     title: "Application is currently initializing...",
     show: true,
     webPreferences: {
-      devTools: isDev,
+      devTools: true,
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
       nodeIntegrationInSubFrames: false,
@@ -82,11 +92,6 @@ async function createWindow() {
     }
   });
 
-  // win.on('will-quit', () =>
-  // {
-  //   exportDbToLocal();
-  //   exportSearchToLocal();
-  // })
 
   // Register global shortcut
   globalShortcut.register(COPY_SHORTCUT, () => {
@@ -115,7 +120,7 @@ async function createWindow() {
     console.log(initialStore); // {"key1": "value1", ... }
   };
 
-  store.mainBindings(ipcMain, win, fs, callback);
+  // store.mainBindings(ipcMain, win, fs, callback);
 
   // Sets up bindings for our custom context menu
   ContextMenu.mainBindings(ipcMain, win, Menu, isDev, {
@@ -334,8 +339,30 @@ app.on("web-contents-created", (event, contents) => {
   });
 });
 
+const fileName = "clipboard.db";
 
-ipcMain.on("historyToMain", (event, args) =>
+ipcMain.on("pushClip",async  (event, args) =>
 {
-  win.webContents.send("historyFromMain", args);
+  const db = dbFactory(app.getPath("userData"), fileName)
+  const {clip} = args;
+  pushClip(db, clip);
 })
+
+  ipcMain.handle('search', async (event, args) =>
+  {
+    const db = dbFactory(app.getPath("userData"), fileName)
+    const proxies = findAll(db)
+    return proxies;
+  })
+
+  // ipcMain.on("fetch-data", (event, args) =>
+  // {
+  //   win.webContents.send("")
+  // })
+
+
+
+// ipcMain.on("historyToMain", (event, args) =>
+// {
+//   win.webContents.send("historyFromMain", args);
+// })

@@ -1,0 +1,1 @@
+{"id":1,"snippet":{"title":"a","text":"  const db = dbFactory(app.getPath(\"userData\"), fileName)\n"},"variables":{},"created_at":{"$$date":500000000000},"_id":"3hGWXgYXHV30orlz","createdAt":{"$$date":1708121051084},"updatedAt":{"$$date":1708121051084}}

@@ -43,11 +43,6 @@ class Textarea extends React.Component<Props, State>
 
     static getDerivedStateFromProps(nextProps: Props, prevState: State)
     {
-        console.log("Props update", nextProps.copy)
-        if (nextProps.copy.variables.length)
-        {
-            console.log("VARIABLESS", nextProps.copy.variables)
-        }
         if (nextProps.copy.currentVariable.indexes.length)
         {
             return {backdropHtml: generateHighlightHtml()};
@@ -73,7 +68,6 @@ class Textarea extends React.Component<Props, State>
         if (selectionStart != null &&  selectionEnd != null)
         {
             const highlight = [selectionStart, selectionEnd];
-            console.log("[selectionStart, selectionEnd]", highlight);
             this.props.setCopyCurrentHighlight(highlight);
         }
         highlightAll();

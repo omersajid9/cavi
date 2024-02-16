@@ -1,6 +1,5 @@
 import { Clip, Snippet, Variable, Variables } from "../constants/interfaces/copy/copy";
 import { pushCopyCurrentVariableIndex, clearCopyCurrentHighlight, clearCopyCurrentVariable, clearCopyCurrentVariableIndex, pushCopyVariable, setCopyCurrentVariableTextToReplace } from "../redux/components/copy/copySlice";
-import { pushDbClipboard, pushDbSearch } from "../redux/components/db/dbSlice";
 import { store, RootState } from "../redux/store/store";
 
 const findAllMatches = (text: string, regex: RegExp) : number[] =>
@@ -17,12 +16,12 @@ export const highlightAll = () =>
 
     if (highlight[0] == highlight[1])
     {
-        console.log("Sorry, no range in highlight");
+        // console.log("Sorry, no range in highlight");
         return;
     }
     else if (!textToReplace)
     {
-        console.log("Sorry, nothing to highlight");
+        // console.log("Sorry, nothing to highlight");
         store.dispatch(clearCopyCurrentVariableIndex());
         return;
     }
@@ -66,22 +65,23 @@ const makeClip = () =>
     const state: RootState  = store.getState();
     const snippet: Snippet = state.copy.snippet;
     const variables: Variables = state.copy.variables;
-    const date: Date = new Date(500000000000);
-    let index: number = state.db.clipCount + 1;
     const clip: Clip = 
     {
-        id: index,
         snippet: snippet,
         variables: variables,
-        created_at: date
     };
     return clip;
 }
 
-export const pushClip = () =>
+export const pushClip = async () =>
 {    
     const clip: Clip = makeClip();
-    store.dispatch(pushDbClipboard(clip));
-    store.dispatch(pushDbSearch(clip));
-
+    try
+    {
+        const z = await window.api.pushClipToDB({clip: clip});
+    }
+    catch(error)
+    {
+        console.log("Error in onsearch");
+    }
 }

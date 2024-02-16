@@ -18,8 +18,6 @@ export interface Variables
 
 export interface Clip
 {
-    id: number;
     snippet: Snippet;
     variables: Variables;
-    created_at: Date;
 }
