@@ -106,10 +106,6 @@ async function createWindow() {
 
 
 
-
-
-
-
   // Sets up main.js bindings for our i18next backend
   i18nextBackend.mainBindings(ipcMain, win, fs);
 

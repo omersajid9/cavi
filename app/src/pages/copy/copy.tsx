@@ -13,7 +13,7 @@ import { pushClip } from '../../helpers/copy';
 
 const mapStateToProps = (state: RootState) => ({
     copy: state.copy,
-    search: state.search
+    search: state.db.search
 })
 
 const mapDispatch = { setCopySnippetTitle, setCopyCurrentVariableName, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight };

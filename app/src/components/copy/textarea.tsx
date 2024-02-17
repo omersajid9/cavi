@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Ref, useRef } from "react";
 import { RootState } from "../../redux/store/store";
 import { ConnectedProps, connect } from "react-redux";
 import { setCopyCurrentHighlight } from "../../redux/components/copy/copySlice";
@@ -24,21 +24,28 @@ interface Props extends PropsFromRedux
 interface State
 {
     backdropHtml: string;
+    scrollPosition: number;
+    scrollRef: React.RefObject<HTMLDivElement>;
 }
 
 
 class Textarea extends React.Component<Props, State>
 {
+    // scrollRef: React.RefObject<HTMLDivElement>;
     constructor(props: Props)
     {
         super(props);
 
         this.state = 
         {
-            backdropHtml: "BOO"
+            backdropHtml: "BOO",
+            scrollPosition: 0,
+            scrollRef: React.createRef()
+
         }
 
         this.handleMouseUpTextarea = this.handleMouseUpTextarea.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
     }
 
     static getDerivedStateFromProps(nextProps: Props, prevState: State)
@@ -73,17 +80,31 @@ class Textarea extends React.Component<Props, State>
         highlightAll();
     }
 
+    handleScroll(e: any) 
+    {
+        this.setState((_state) => ({scrollPosition: e.target.scrollTop, backdropHtml: _state.backdropHtml, scrollRef: _state.scrollRef}))
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        requestAnimationFrame(() =>
+        {
+            if (prevState.scrollRef?.current)
+            {
+                prevState.scrollRef?.current.scrollTo({top: prevState.scrollPosition, behavior: 'instant'})
+            }
+        })
+    }
 
     render()
     {
         return (
             <div className="container">
-                <div className="backdrop">
+                <div className="backdrop" ref={this.state.scrollRef}>
                     <div className="highlights">
                         <div dangerouslySetInnerHTML={{__html: this.state.backdropHtml}}></div>
                     </div>
                 </div>
-                <textarea id="copyTextArea" value={this.props.copy.snippet.text} onMouseUp={this.handleMouseUpTextarea} readOnly/>
+                <textarea id="copyTextArea" value={this.props.copy.snippet.text} onMouseUp={this.handleMouseUpTextarea} onScroll={this.handleScroll} readOnly/>
             </div>
         )
     }
