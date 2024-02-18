@@ -5,7 +5,14 @@ import AppRoutes from "Core/routes";
 import Nav from "./nav";
 import "./root.css";
 
-class Root extends React.Component {
+
+class Root extends React.Component 
+{
+  constructor(props)
+  {
+    super(props)
+  }
+
   render() {
     const { store, history } = this.props;
 

@@ -16,7 +16,7 @@ import copyReducer from "../components/copy/copySlice";
 import homeReducer from "../components/home/homeSlice";
 import counterReducer from "../components/counter/counterSlice";
 import complexReducer from "../components/complex/complexSlice";
-import dbReducer from "../components/db/dbSlice";
+import searchReducer from "../components/search/searchSlice";
 
 const {
   routerMiddleware,
@@ -31,7 +31,7 @@ export const store = configureStore({
     router: routerReducer,
     home: homeReducer,
     copy: copyReducer,
-    db: dbReducer,
+    search: searchReducer,
     undoable: undoable(
       combineReducers({
         counter: counterReducer,

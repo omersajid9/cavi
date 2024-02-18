@@ -21,11 +21,17 @@ class Nav extends React.Component {
       appVersion: "",
       licenseExpiry: "",
     };
-
+    
+    
     this.toggleMenu = this.toggleMenu.bind(this);
     this.toggleLicenseModal = this.toggleLicenseModal.bind(this);
     this.navigate = this.navigate.bind(this);
+
+    this.handleCopy = this.handleCopy.bind(this);
+    this.handlePaste = this.handlePaste.bind(this);
   }
+
+
 
   componentWillUnmount() {
     window.api.licenseKeys.clearRendererBindings();
@@ -34,6 +40,10 @@ class Nav extends React.Component {
   componentDidMount() {
     // Set up binding to listen when the license key is
     // validated by the main process
+
+    window.api.receive('open-copy', this.handleCopy);
+    window.api.receive('open-paste', this.handlePaste);
+
     const _ = this;
 
     window.api.licenseKeys.onReceive(validateLicenseResponse, function (data) {
@@ -92,6 +102,35 @@ class Nav extends React.Component {
       }
     );
   }
+
+  handleCopy(a)
+  {
+    try
+    {
+      this.navigate(ROUTES.COPY);
+    }
+    catch (error)
+    {
+      console.log("Navigate copy error", error)
+    }
+    console.log("FRON END COPY", window.location)
+
+  }
+
+  handlePaste()
+  {
+
+    try
+    {
+      this.navigate(ROUTES.PASTE);
+    }
+    catch (error)
+    {
+      console.log("Navigate paste error", error)
+    }
+
+  }
+
 
   renderLicenseModal() {
     return (
@@ -193,56 +232,20 @@ class Nav extends React.Component {
             this.state.mobileMenuActive ? "is-active" : ""
           }`}>
           <div className="navbar-start">
+          <a
+              className="navbar-item"
+              onClick={() => this.navigate(ROUTES.COPY)}
+              onKeyDown={() => this.navigate(ROUTES.COPY)}>
+              Copy
+            </a>
             <a
               className="navbar-item"
-              onClick={() => this.navigate(ROUTES.WELCOME)}
-              onKeyDown={() => this.navigate(ROUTES.WELCOME)}>
-              Home
+              onClick={() => this.navigate(ROUTES.PASTE)}
+              onKeyDown={() => this.navigate(ROUTES.PASTE)}>
+              Paste
             </a>
 
-            <a
-              className="navbar-item"
-              onClick={() => this.navigate(ROUTES.ABOUT)}
-              onKeyDown={() => this.navigate(ROUTES.ABOUT)}>
-              About
-            </a>
 
-            <div className="navbar-item has-dropdown is-hoverable">
-              <a className="navbar-link">Sample pages</a>
-
-              <div className="navbar-dropdown">
-                <a
-                  className="navbar-item"
-                  onClick={() => this.navigate(ROUTES.MOTD)}
-                  onKeyDown={() => this.navigate(ROUTES.MOTD)}>
-                  Using the Electron store
-                </a>
-                <a
-                  className="navbar-item"
-                  onClick={() => this.navigate(ROUTES.LOCALIZATION)}
-                  onKeyDown={() => this.navigate(ROUTES.LOCALIZATION)}>
-                  Changing locales
-                </a>
-                <a
-                  className="navbar-item"
-                  onClick={() => this.navigate(ROUTES.UNDOREDO)}
-                  onKeyDown={() => this.navigate(ROUTES.UNDOREDO)}>
-                  Undo/redoing actions
-                </a>
-                <a
-                  className="navbar-item"
-                  onClick={() => this.navigate(ROUTES.CONTEXTMENU)}
-                  onKeyDown={() => this.navigate(ROUTES.CONTEXTMENU)}>
-                  Custom context menu
-                </a>
-                <a
-                  className="navbar-item"
-                  onClick={() => this.navigate(ROUTES.IMAGE)}
-                  onKeyDown={() => this.navigate(ROUTES.IMAGE)}>
-                  Sample image loaded
-                </a>
-              </div>
-            </div>
           </div>
           {this.renderLicenseModal()}
           <div className="navbar-end">
@@ -269,3 +272,55 @@ function WithNavigate(props){
 }
 
 export default WithNavigate;
+
+
+            // {/* <a
+            //   className="navbar-item"
+            //   onClick={() => this.navigate(ROUTES.WELCOME)}
+            //   onKeyDown={() => this.navigate(ROUTES.WELCOME)}>
+            //   Home
+            // </a>
+
+            // <a
+            //   className="navbar-item"
+            //   onClick={() => this.navigate(ROUTES.ABOUT)}
+            //   onKeyDown={() => this.navigate(ROUTES.ABOUT)}>
+            //   About
+            // </a>
+
+            // <div className="navbar-item has-dropdown is-hoverable">
+            //   <a className="navbar-link">Sample pages</a>
+
+            //   <div className="navbar-dropdown">
+            //     <a
+            //       className="navbar-item"
+            //       onClick={() => this.navigate(ROUTES.MOTD)}
+            //       onKeyDown={() => this.navigate(ROUTES.MOTD)}>
+            //       Using the Electron store
+            //     </a>
+            //     <a
+            //       className="navbar-item"
+            //       onClick={() => this.navigate(ROUTES.LOCALIZATION)}
+            //       onKeyDown={() => this.navigate(ROUTES.LOCALIZATION)}>
+            //       Changing locales
+            //     </a>
+            //     <a
+            //       className="navbar-item"
+            //       onClick={() => this.navigate(ROUTES.UNDOREDO)}
+            //       onKeyDown={() => this.navigate(ROUTES.UNDOREDO)}>
+            //       Undo/redoing actions
+            //     </a>
+            //     <a
+            //       className="navbar-item"
+            //       onClick={() => this.navigate(ROUTES.CONTEXTMENU)}
+            //       onKeyDown={() => this.navigate(ROUTES.CONTEXTMENU)}>
+            //       Custom context menu
+            //     </a>
+            //     <a
+            //       className="navbar-item"
+            //       onClick={() => this.navigate(ROUTES.IMAGE)}
+            //       onKeyDown={() => this.navigate(ROUTES.IMAGE)}>
+            //       Sample image loaded
+            //     </a> 
+            //   </div>
+            // </div> */}

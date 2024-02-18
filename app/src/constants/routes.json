@@ -8,5 +8,5 @@
   "IMAGE": "/image",
 
   "COPY": "/copy",
-  "PASTE": "/"
+  "PASTE": "/paste"
 }

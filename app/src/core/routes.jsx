@@ -36,10 +36,10 @@ const Paste = loadable(() =>
 
 
 class AppRoutes extends React.Component {
-  render() {    
+  render() {  
     return (
       <Routes>
-        <Route path={ROUTES.PASTE} element={<Copy />}></Route>
+        <Route path={ROUTES.PASTE} element={<Paste />}></Route>
         <Route path={ROUTES.COPY} element={<Copy />}></Route>
 
         <Route path={ROUTES.WELCOME} element={<Welcome />}></Route>

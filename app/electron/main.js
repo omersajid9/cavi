@@ -5,7 +5,8 @@ const {
   session,
   ipcMain,
   Menu,
-  globalShortcut
+  globalShortcut,
+  clipboard
 } = require("electron");
 const {
   default: installExtension,
@@ -26,6 +27,7 @@ const isDev = process.env.NODE_ENV === "development";
 const port = 40992; // Hardcoded; needs to match webpack.development.js and package.json
 const selfHost = `http://localhost:${port}`;
 const { dbFactory, pushClip, findAll } = require('./db/db');
+const {keyboard, Key} =  require('@nut-tree/nut-js')
 
 
 const {
@@ -77,7 +79,7 @@ async function createWindow() {
     width: 500,
     height: 400,
     title: "Application is currently initializing...",
-    show: true,
+    show: false,
     webPreferences: {
       devTools: true,
       nodeIntegration: false,
@@ -93,13 +95,35 @@ async function createWindow() {
   });
 
 
+  const copyToClipboard = async () =>
+  {
+    await keyboard.pressKey(Key.LeftControl, Key.Insert);
+    await keyboard.releaseKey(Key.LeftControl, Key.Insert);
+    console.log("BILLO DONE")
+  }
+
+
+
   // Register global shortcut
   globalShortcut.register(COPY_SHORTCUT, () => {
-    win?.show();
+    try
+    {
+      copyToClipboard().then(() =>
+      {
+        win?.show();    
+        win?.webContents.send('open-copy')
+        
+      })
+    }
+    catch (error)
+    {
+      console.log("PASE FROM HISTORY ERROR ++++ ", error)
+    }
   })
-
-  globalShortcut.register(PASTE_SHORTCUT, () => {
+  
+  globalShortcut.register(PASTE_SHORTCUT,async () => {
     win?.show();
+    win?.webContents.send('open-paste')
   })
   
 
@@ -335,6 +359,7 @@ app.on("web-contents-created", (event, contents) => {
   });
 });
 
+
 const fileName = "clipboard.db";
 
 ipcMain.on("pushClip",async  (event, args) =>
@@ -350,6 +375,36 @@ ipcMain.on("pushClip",async  (event, args) =>
     const proxies = findAll(db)
     return proxies;
   })
+  async function pasteFromHistory(arg) 
+  {
+        try
+        {
+          await clipboard.writeText(arg, "selection");
+          await keyboard.pressKey(Key.LeftShift, Key.Insert);
+          await keyboard.releaseKey(Key.LeftShift, Key.Insert);
+      }
+      catch (error)
+      {
+        console.log("PASE FROM HISTORY ERROR ++++ ", error)
+      }
+  }
+  
+  async function getClipboardText(arg) {
+    const tempWindow = new BrowserWindow({ show: false, width: 500, height: 300  })  
+    await pasteFromHistory(arg)  
+    tempWindow.close()
+  }
+  
+
+ipcMain.on("close-me", async (event, args) =>
+{
+  const window = BrowserWindow.fromWebContents(event.sender);  
+  if (window)
+  {
+    getClipboardText(args)
+    window.close();
+  }
+})
 
   // ipcMain.on("fetch-data", (event, args) =>
   // {

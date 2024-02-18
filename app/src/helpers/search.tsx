@@ -14,11 +14,12 @@ export const initiateIndex = async () =>
       document: {
         id: 'id',
         index: ['title','text'],
+        store: true
       },
-      tokenize: 'forward'
+      tokenize: 'full'
     });
 
-    window.api.search('hello')
+    window.api.search('*')
         .then((results: any[]) => {
             // use results
             results.forEach((result: any) =>

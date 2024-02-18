@@ -19,18 +19,18 @@ contextBridge.exposeInMainWorld("api", {
   send: (channel, data) => 
   {
     // whitelist channels
-    let validChannels = ["historyToMain"];
-    if (validChannels.includes(channel)) 
-    {
+    // let validChannels = ["historyToMain"];
+    // if (validChannels.includes(channel)) 
+    // {
         ipcRenderer.send(channel, data);
-    }
+    // }
   },
   receive: (channel, func) => {
-    let validChannels = ["historyFromMain"];
-    if (validChannels.includes(channel)) {
+    // let validChannels = ["historyFromMain"];
+    // if (validChannels.includes(channel)) {
         // Deliberately strip event as it includes `sender` 
         ipcRenderer.on(channel, (event, ...args) => func(...args));
-    }
+    // }
   },
   pushClipToDB : (data) =>
   {
@@ -48,6 +48,10 @@ contextBridge.exposeInMainWorld("api", {
       console.log("PRELOAD ERROR FINDCLIPFROMDB", error)
     }
   },
-  search: async (term) => await ipcRenderer.invoke('search', term)
+  search: async (term) => await ipcRenderer.invoke('search', term),
+  paste: (text) =>
+  {
+    ipcRenderer.send("close-me", text);
+  }
 
 });

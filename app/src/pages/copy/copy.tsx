@@ -8,12 +8,10 @@ import Textarea from "../../components/copy/textarea";
 import getFromClipboard from "../../helpers/clipboard";
 import { createVariable } from '../../helpers/copy';
 
-import { exportDbToLocal, importDbFromLocal } from '../../helpers/db';
 import { pushClip } from '../../helpers/copy';
 
 const mapStateToProps = (state: RootState) => ({
     copy: state.copy,
-    search: state.db.search
 })
 
 const mapDispatch = { setCopySnippetTitle, setCopyCurrentVariableName, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight };
