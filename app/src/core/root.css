@@ -14,3 +14,30 @@ body {
 #target {
   height: -webkit-fill-available;
 }
+
+.color-grey
+{
+  background-color: #a37cf0;
+  display:inline-block;width:fit-content;
+}
+
+.color-blue 
+{
+  background-color: #b1d5e5;
+  display:inline-block;
+  width:min-content;
+}
+.color-pink
+{
+  background-color: pink;
+  display:inline-block;width:fit-content;
+}
+.color-green
+{
+  background-color: #00FF00;
+  display:inline-block;width:fit-content;
+}
+.color-yellow
+{
+  background-color: #FFD700;
+}

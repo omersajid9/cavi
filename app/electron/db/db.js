@@ -1,5 +1,6 @@
 const Datastore = require('nedb-promises');
-
+const sound = require("sound-play");
+const path = require("path");
 
 const dbFactory = (userDataPath, fileName) =>
 {
@@ -8,24 +9,56 @@ const dbFactory = (userDataPath, fileName) =>
         {
             filename: `${userDataPath ? userDataPath : '.'}/data/${fileName}`,
             timestampData: true,
-            // autoload: true
+            autoload: true
         })
 }
 
-const pushClip = async (db, Clip) =>
+
+const pushHotKey = async (db, text, idx) =>
 {
-    const c =  await db.insert(Clip);
-    const all = await findAll(db);
-    console.log("FINDINGS", all)
+    db.count({key: idx}).then( async (val) =>
+    {
+        if (val > 0)
+        {
+            await db.deleteMany({ key: idx });
+        }
+        await db.insert({key:idx, text: text});
+    })
+}
+
+const getHotKey = async (db, idx) =>
+{
+    const ret = await db.find({key: idx});
+    return ret;
+}
+
+const pushClip = async (db, Clip) =>
+{    
+    if (Clip && Clip.snippet.text && Clip.snippet.text.length > 0) 
+    {
+        sound.play(path.join(__dirname, "../../../resources/sonds/copy.mp3"));
+        await db.insert(Clip);
+    }
+}
+
+const deleteClip = async (db, id) =>
+{
+    await db.deleteOne({ _id: id })
 }
 
 const findAll = async (db) =>
 {
-    return await db.find({});
+    return await db.find({}).sort({createdAt: -1});
 }
 
 module.exports = { 
     dbFactory,
     pushClip,
-    findAll
+    findAll,
+    pushHotKey,
+    getHotKey,
+    deleteClip
  };
+ 
+
+

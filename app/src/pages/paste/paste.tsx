@@ -4,12 +4,15 @@ import { ConnectedProps, connect } from "react-redux";
 import * as _ from 'lodash';
 import SearchTextarea from "../../components/paste/searchTextarea"
 import './paste.css'
+import { Variable } from "../../constants/interfaces/copy/copy";
+import { initiateIndex } from "../../redux/components/search/searchSlice";
+import { FaList, FaRegWindowClose, FaSearch } from "react-icons/fa";
 const mapStateToProps = (state: RootState) =>
 ({
     search: state.search
 })
 
-const mapDispatch = {};
+const mapDispatch = {initiateIndex};
 const connector = connect(mapStateToProps, mapDispatch);
 
 type PropsFromRedux = ConnectedProps<typeof connector>;
@@ -19,11 +22,12 @@ interface Props extends PropsFromRedux
 
 }
 
-interface Show
+export interface Show
 {
     id: string;
     title: string;
     text: string;
+    variables: Variable[];
 }
 
 interface State
@@ -32,6 +36,8 @@ interface State
     query: string;
     search: Show[];
     searchShowIndex: number | null;
+    refresh: boolean;
+    listview: boolean;
 }
 
 
@@ -46,11 +52,23 @@ class Paste extends React.Component<Props, State>
             all: [],
             query: "",
             search: [],
-            searchShowIndex: null
+            searchShowIndex: null,
+            refresh: true,
+            listview: true
+
         }
 
         this.onChangeQuery = this.onChangeQuery.bind(this);
         this.onItemClick = this.onItemClick.bind(this);
+
+        this.refresh = this.refresh.bind(this);
+        this.closeWindow = this.closeWindow.bind(this);
+
+    }
+
+    closeWindow()
+    {
+        window.api.send("close");
     }
 
     async onChangeQuery(event: ChangeEvent<HTMLInputElement>)
@@ -60,39 +78,69 @@ class Paste extends React.Component<Props, State>
         
         if (value.length)
         {
-            let index = await this.props.search.search;
+            let index = this.props.search.search;
             const searchResult = index.search([{field:'title', query: value}]);
             const shows: Show[] = [];
 
-            searchResult[0].result.map((_id: string) =>
+            if (searchResult.length > 0)
             {
-                let lodash: Show = _.find(this.state.all, {id: _id}) as Show
-                shows.push(lodash)
-            })
-            this.setState((_state) => ({query: value, all: _state.all, search: shows}));
+                searchResult[0].result.map((_id: string) =>
+                {
+                    let lodash: Show = _.find(this.state.all, {id: _id}) as Show
+                    shows.push(lodash)
+                })
+                this.setState((_state) => ({query: value, all: _state.all, search: shows}));
+            }
+            else
+            {
+                this.setState((_state) => ({query: value, all: _state.all, search: []}));
+            }
         }
         else
         {
-            this.setState((_state) => ({query: value, all: _state.all, search: _state.search}));
+            this.setState((_state) => ({query: value, all: _state.all, search: []}));
         }
     }
 
-    async componentDidMount() 
+    async refresh()
     {
-        let index = await this.props.search.search
-        let all = index.store;
-        var resultArray = Object.keys(all).map(function(allIndex){
-            let single = all[allIndex];
-            return single;
-        });
-        console.log("STORE", resultArray);
-        
-        this.setState((_state) => ({all: (resultArray)}));
+        // this.props.refreshIndex();
+        const res = await this.props.initiateIndex()
     }
 
-    onItemClick(idx: number)
+    
+
+
+    async componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any) {
+        if (!_.isEqual(prevProps, this.props))
+        {
+            setTimeout(() => {
+            let all = this.props.search.search.store;
+            if (all)
+            {    
+            var resultArray = Object.keys(all).map(function (allIndex) {
+                let single = all[allIndex];
+                return single;
+            });
+            
+                this.setState({ all: resultArray });
+                this.setState({search: []})
+                }}, 100)
+            }
+        
+    }
+
+
+    async componentDidMount() 
     {
-        const stringPaste: string = this.state.all[idx].text;
+        const res = await this.props.initiateIndex()
+
+        let index = res.payload        
+    }
+
+    onItemClick(idx: number, arr: Show[])
+    {
+        const stringPaste: string = arr[idx].text;
         window.api.paste(stringPaste);
     }
 
@@ -100,43 +148,48 @@ class Paste extends React.Component<Props, State>
     {
         return (
             <React.Fragment>
-                <div className=" bg-black">
-                =================================================
-                    <div>
-                    SEARCH HERE
+                <div className='titlebar'><div></div><div>cavi</div><FaRegWindowClose style={{color: "red"}} className='title-closeme' onClick={this.closeWindow}/></div>
+
+                <div className=" bg-black copy-body">
+                    <div style={{ display: "flex", justifyContent: "space-around" }}>
+                        <FaSearch style={{color: !this.state.listview ? "green": "grey"}} onClick={() => {this.setState({listview: false})}}/> <FaList style={{color: this.state.listview ? "green": "grey"}} onClick={() => {this.setState({listview: true})}}/>
+                        
+                    </div>
+                    {!this.state.listview ?
+                    
+                        <div style={{marginTop: "20px"}}>
+                            <input className='input' value={this.state.query} onChange={this.onChangeQuery} placeholder='Search for snippets'/>
+                            <table >
+                            {
+                                this.state.search.map((item, idx) => 
+                                (
+                                    <>
+                                        <div>
+                                            {<tr ><SearchTextarea refresh={this.refresh} show={item} /></tr>}
+                                            
+                                        </div>
+                                    </>
+                                ))
+                            }
+                            </table>
                         </div>
-
-                    <input className='input-query-paste' value={this.state.query} onChange={this.onChangeQuery} placeholder='Search for snippets'/>
-
-                    <table>
-                    {
-                        this.state.search.map((item, idx) => 
-                        (
-                            <>
-                                <div>
-                                    <tr key={idx} onMouseOver={() => this.setState({searchShowIndex: idx})} onMouseOut={() => this.setState({searchShowIndex: null})} onClick={() => this.onItemClick(idx)}>{item.title}</tr>
-                                    {this.state.searchShowIndex == idx && <tr>{item.text}</tr>}
-                                </div>
-                            </>
-                        ))
+                        :
+                        <div style={{marginTop: "20px"}}>
+                            <table>
+                            {
+                                this.state.all.map((item, idx) => 
+                                (
+                                    <>
+                                        <div>
+                                        {<tr><SearchTextarea refresh={this.refresh} show={item} /></tr>}
+                                        </div>
+                                    </>
+                                ))
+                            }
+                            </table>
+                        </div>
                     }
-                    </table>
-
-                    =================================================
-                    ALL DATABASE TITLES
-                    <table>
-                    {
-                        this.state.all.map((item, idx) => 
-                        (
-                            <>
-                                <div>
-                                    <tr key={idx} onMouseOver={() => this.setState({searchShowIndex: idx})} onMouseOut={() => this.setState({searchShowIndex: null})} onClick={() => this.onItemClick(idx)}>{item.title}</tr>
-                                    {this.state.searchShowIndex == idx && <tr>{item.text}</tr>}
-                                </div>
-                            </>
-                        ))
-                    }
-                    </table>
+                    
 
                 </div>
             </React.Fragment>
@@ -145,4 +198,12 @@ class Paste extends React.Component<Props, State>
 }
 
 export default connector(Paste);
-// {/* <SearchTextarea/> */}
+
+
+// {this.state.searchShowIndex == idx && Object.keys(item.variables).length && Object.keys(item.variables).map((name: string) =>
+//     (
+//         <>
+//             <h2 Style='background-color:blue !important; color: green;'>{item.variables[name].name}</h2>
+//         </>
+                                    {/* <tr key={idx} onClick={() => this.onItemClick(idx, this.state.all)}>{_.trim(item.text).substring(0, 60)}</tr> */}
+//     ))}

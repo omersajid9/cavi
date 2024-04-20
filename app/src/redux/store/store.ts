@@ -13,7 +13,6 @@ import {
 } from "redux-first-history";
 import undoable from "easy-redux-undo";
 import copyReducer from "../components/copy/copySlice";
-import homeReducer from "../components/home/homeSlice";
 import counterReducer from "../components/counter/counterSlice";
 import complexReducer from "../components/complex/complexSlice";
 import searchReducer from "../components/search/searchSlice";
@@ -29,15 +28,19 @@ const {
 export const store = configureStore({
   reducer: combineReducers({
     router: routerReducer,
-    home: homeReducer,
-    copy: copyReducer,
-    search: searchReducer,
-    undoable: undoable(
+    copy: undoable(
       combineReducers({
-        counter: counterReducer,
-        complex: complexReducer
+        copy: copyReducer
       })
-    )
+    ),
+    // copy: copyReducer,
+    search: searchReducer,
+    // undoable: undoable(
+    //   combineReducers({
+    //     counter: counterReducer,
+    //     complex: complexReducer
+    //   })
+    // )
   }),
   middleware: [...getDefaultMiddleware({
     serializableCheck: false

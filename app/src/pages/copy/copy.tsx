@@ -9,6 +9,7 @@ import getFromClipboard from "../../helpers/clipboard";
 import { createVariable } from '../../helpers/copy';
 
 import { pushClip } from '../../helpers/copy';
+import { FaRegWindowClose } from 'react-icons/fa';
 
 const mapStateToProps = (state: RootState) => ({
     copy: state.copy,
@@ -52,6 +53,9 @@ class Copy extends React.Component<Props, State>
         // VARIABLE METHODS
         this.onChangeInputName = this.onChangeInputName.bind(this);
         this.onSubmitInput = this.onSubmitInput.bind(this);
+
+        this.onSearch = this.onSearch.bind(this);
+        this.closeWindow = this.closeWindow.bind(this);
     }
 
     // SNIPPET METHODS
@@ -61,14 +65,21 @@ class Copy extends React.Component<Props, State>
         event.preventDefault();
         const { value } = event.target;
         this.setState((_state)=> ({snippetTitle: value}));
-        this.props.setCopySnippetTitle(value);
+        
     }
-    onSubmitSnippet(event: FormEvent<HTMLFormElement>)
+
+    closeWindow()
+    {
+        window.api.send("close");
+    }
+
+    async onSubmitSnippet(event: FormEvent<HTMLFormElement>)
     {
         event.preventDefault();
+        this.props.setCopySnippetTitle(this.state.snippetTitle);
         window.api.store.send(deleteConfigRequest);
 
-        pushClip();
+        await pushClip();
 
         this.setState((_state)=> ({currentVariableName: "", snippetTitle: ""}));
 
@@ -77,7 +88,7 @@ class Copy extends React.Component<Props, State>
         this.props.clearCopySnippet();
 
         window.api.store.send(useConfigInMainRequest);
-
+        window.api.close()
     }
 
     // VARIABLE
@@ -92,63 +103,60 @@ class Copy extends React.Component<Props, State>
     onSubmitInput(event: FormEvent<HTMLFormElement>)
     {
         event.preventDefault();
+        console.log("HAPPENING")
         createVariable();
         this.props.clearCopyCurrentHighlight();
         this.props.clearCopyCurrentVariable();
 
     }
 
-    async onSearch()
+    onSearch()
     {
         window.api.search('hello')
         .then((results: any) => {
             // use results
-            console.log(results)
+            // console.log(results)
         });
     }
+
+    async componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any) {
+        // console.log("componentDidUpate")
+    }
+
     
-    componentDidMount()
+    async componentDidMount()
     {
-
-        let billo = getFromClipboard()
-        // While loop for repeated cals untill we get the latest copy
-        while (!billo)
+        let billo = await getFromClipboard()
+        console.log("MOUNT", billo)
+        window.api.receive('open-copy', async () =>
         {
-            billo = getFromClipboard()
-        }
-        window.api.store.send(useConfigInMainRequest);
-
+            console.log("CLIPBOARD MOUNT START ")
+            let billo = await getFromClipboard()
+            console.log("MOUNT", billo)
+            // While loop for repeated cals untill we get the latest copy
+            while (!billo)
+            {
+                billo = await getFromClipboard()
+            }
+            window.api.store.send(useConfigInMainRequest);
+        });
     }
 
     render()
     {
         return (
             <React.Fragment>
-                <div className="">
-                    <button onClick={this.onSearch}>CONSOLE LOG DATABASE</button>
+                <div className='titlebar'><div></div><div>cavi</div><FaRegWindowClose style={{color: "red"}} className='title-closeme' onClick={this.closeWindow}/></div>
+                <div className="copy-body" >
                         {/* SNIPPET */}
                         <div className=''>
                             <form className='mb-4' onSubmit={this.onSubmitSnippet}>
                                 <input className='input-name-copy input' value={this.state.snippetTitle} onChange={this.onChangeSnippetTitle} placeholder='Enter a comment'/>
-                                <Textarea />
 
                             </form>
+                            <Textarea />
                         </div>
-
-                        {/* VARIABLE */}
-                        <form onSubmit={this.onSubmitInput}>
-                            <input className='input' value={this.state.currentVariableName} onChange={this.onChangeInputName} placeholder='Enter a variable name'/>
-                        </form>
-
-                        {this.props.copy.currentVariable.name}
-                        {
-                            this.props.copy.currentVariable.indexes?.map((item) => 
-                            (
-                                <>
-                                    <div>{item}</div>
-                                </>
-                            ))
-                        }
+                        
                 </div>
 
             </React.Fragment>
@@ -157,7 +165,6 @@ class Copy extends React.Component<Props, State>
 }
 
 export default connector(Copy);
-
 
 
 

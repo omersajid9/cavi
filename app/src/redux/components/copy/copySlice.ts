@@ -78,11 +78,21 @@ const copySlice = createSlice(
                 {
                     state.variables[state.currentVariable.name] = state.currentVariable;
                 }
+            },
+            removeCopyVariableIndex(state, action)
+            {
+                state.variables[action.payload['var_name']].indexes = state.variables[action.payload['var_name']].indexes.filter(item => item != action.payload['ind']);
+                if (state.variables[action.payload['var_name']].indexes.length == 0)
+                {
+                    delete state.variables[action.payload['var_name']];
+                }
             }
+            
 
         }
     }
 )
+
 
 export const 
 { 
@@ -96,7 +106,8 @@ export const
     pushCopyCurrentVariableIndex,
     clearCopyCurrentVariableIndex,
     clearCopyCurrentVariable,
-    pushCopyVariable
+    pushCopyVariable,
+    removeCopyVariableIndex
 } = copySlice.actions;
 
 export default copySlice.reducer;

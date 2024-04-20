@@ -7,3 +7,111 @@
 {
     border: black 20px solid;
 } */
+
+/* .container, .backdrop, textarea {
+    width: 100vw;
+    height: 70vh;
+    padding: 12px 20px; 
+
+  } */
+  
+  .highlights, textarea {
+    /* padding: 10px; */
+    /* font: 20px/28px 'Open Sans', sans-serif; */
+    letter-spacing: 1px;
+    line-height: 1;
+    border: 0;
+  }
+  
+  .container {
+    display: block;
+    margin: 0 0;
+    -webkit-text-size-adjust: none;
+  }
+
+  #searchTextArea
+{
+    box-sizing: border-box;
+    border-radius: 4px;
+    font-size: 16px;
+    resize: none;
+    color: black;  
+    z-index: 0;
+    display: block;
+    overflow: auto;
+    
+}
+
+  .backdrop {
+    position: absolute;
+    z-index: 2;
+    background-color: transparent;
+    overflow: auto;
+    pointer-events: none;
+    transition: transform 1s;
+  }
+
+  
+  .highlights {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: transparent;
+    background-color: transparent;
+  }
+  
+  textarea {
+    
+    display: block;
+    position: absolute;
+    z-index: 2;
+    margin: 0;
+    border-radius: 0;
+    color: #444;
+    background-color: transparent;
+    overflow: auto;
+    resize: none;
+  }
+  
+  mark {
+    border-radius: 3px;
+    color: transparent;
+    /* background-color: #b1d5e5; */
+  }
+
+  .color-grey
+  {
+    background-color: #a37cf0;
+    display:inline-block;width:fit-content;
+  }
+
+  .color-blue 
+  {
+    background-color: #b1d5e5;
+    display:inline-block;
+    width:min-content;
+  }
+  .color-pink
+  {
+    background-color: pink;
+    display:inline-block;width:fit-content;
+  }
+  .color-green
+  {
+    background-color: #00FF00;
+    display:inline-block;width:fit-content;
+  }
+  .color-yellow
+  {
+    background-color: #FFD700;
+  }
+  
+  textarea:focus, button:focus {
+    outline: none;
+  }
+
+
+  .textareainput::placeholder
+  {
+    color: white;
+  }
+

@@ -8,6 +8,11 @@ export interface IndexedDocument
     text: string
 }
 
+export const getInitiateIndex = async () =>
+{
+    return await initiateIndex();
+}
+
 export const initiateIndex = async () =>
 {
     let index: Document = new Document<IndexedDocument, true>({
@@ -15,6 +20,7 @@ export const initiateIndex = async () =>
         id: 'id',
         index: ['title','text'],
         store: true
+        // store: 'variables'
       },
       tokenize: 'full'
     });
@@ -24,7 +30,7 @@ export const initiateIndex = async () =>
             // use results
             results.forEach((result: any) =>
             {
-                let newObject = {id: result._id, title: result.snippet.title, text: result.snippet.text};
+                let newObject = {id: result._id, title: result.snippet.title, text: result.snippet.text, variables: result.variables};
                 index.append(newObject);
             })
         });

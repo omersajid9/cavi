@@ -8,6 +8,7 @@ const {
   globalShortcut,
   clipboard
 } = require("electron");
+const { EventEmitter } = require('events');
 const {
   default: installExtension,
   REDUX_DEVTOOLS,
@@ -26,23 +27,21 @@ const crypto = require("crypto");
 const isDev = process.env.NODE_ENV === "development";
 const port = 40992; // Hardcoded; needs to match webpack.development.js and package.json
 const selfHost = `http://localhost:${port}`;
-const { dbFactory, pushClip, findAll } = require('./db/db');
-const {keyboard, Key} =  require('@nut-tree/nut-js')
-
+const { dbFactory, pushClip, findAll, pushHotKey, getHotKey, deleteClip } = require('./db/db');
+const robot = require("@jitsi/robotjs");
+const sound = require("sound-play");
 
 const {
   COPY_SHORTCUT,
-  PASTE_SHORTCUT
+  PASTE_SHORTCUT,
+  MULTI_COPY_ARRAY,
+  MULTI_PASTE_ARRAY,
 } = require("./shortcuts");
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
 let menuBuilder;
-
-// db.deleteMany({});
-
-
 
 
 
@@ -66,6 +65,9 @@ async function createWindow() {
     reset: true,
     encrypt: true,
   });
+
+  const myEmitter = new EventEmitter();
+
   
   // Use saved config values for configuring your
   // BrowserWindow, for instance.
@@ -91,29 +93,67 @@ async function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       /* eng-disable PRELOAD_JS_CHECK */
       disableBlinkFeatures: "Auxclick",
-    }
+    },
+    titleBarStyle: 'hidden',
+    borderRadius: 100
+    // transparent: true
+
   });
 
 
-  const copyToClipboard = async () =>
+
+  const copyToClipboard = () =>
   {
-    await keyboard.pressKey(Key.LeftControl, Key.Insert);
-    await keyboard.releaseKey(Key.LeftControl, Key.Insert);
-    console.log("BILLO DONE")
+    return new Promise(resolve =>
+      {
+        robot.keyTap("insert", "control");
+        resolve();
+      })
   }
 
+  myEmitter.on("show", () =>
+  {
+    win?.show();
+  })
+
+  function checkClipboardChanged(){
+    const fileName = "clipboard.db";
+
+    let cache = clipboard.readText()
+    let latest
+    setInterval( async () => {
+
+        latest = clipboard.readText()
+
+      if (latest !== cache && latest.length > 0) {
+          console.log("COPYING", cache, latest)
+            cache = latest
+            const db = dbFactory(app.getPath("userData"), fileName)
+          const clip = { snippet: { title: cache, text: cache }, variables: [] };
+            // await pushClip(db, clip)
+        }
+
+    }, 1000) 
+}
 
 
   // Register global shortcut
-  globalShortcut.register(COPY_SHORTCUT, () => {
+  globalShortcut.register(COPY_SHORTCUT, async () => {
+
     try
     {
-      copyToClipboard().then(() =>
+      setTimeout(async () =>
       {
-        win?.show();    
-        win?.webContents.send('open-copy')
-        
-      })
+        await copyToClipboard()
+        .then(() =>
+        {
+          setTimeout(() =>
+          {
+            win?.webContents.send('open-copy')
+            myEmitter.emit("show");  
+          }, 300)
+        })
+      }, 200)
     }
     catch (error)
     {
@@ -125,10 +165,40 @@ async function createWindow() {
     win?.show();
     win?.webContents.send('open-paste')
   })
+
   
+  MULTI_COPY_ARRAY.forEach((copy_num) =>
+  {
+    globalShortcut.register(copy_num, async () =>
+    {
+      let num = copy_num.split("+")[1];
+      await copyToClipboard().then(() =>
+      {
+        const hotDb = dbFactory(app.getPath("userData"), "hotkey.db")
+        setTimeout(() =>
+        {
+          const cl = clipboard.readText()
+          pushHotKey(hotDb, cl, num)
+        }, 400)      
+      })
+    })
+  })
 
 
 
+  MULTI_PASTE_ARRAY.forEach((paste_num) =>
+  {
+    globalShortcut.register(paste_num, async () =>
+    {
+      let num = paste_num.split("+")[1];
+      const hotDb = dbFactory(app.getPath("userData"), "hotkey.db")
+      await getHotKey(hotDb, num).then(async (getresult) =>
+      {
+        await pasteFromHistory(getresult[0]['text'])
+  
+      })
+    })
+  })
 
   // Sets up main.js bindings for our i18next backend
   i18nextBackend.mainBindings(ipcMain, win, fs);
@@ -143,16 +213,16 @@ async function createWindow() {
   // store.mainBindings(ipcMain, win, fs, callback);
 
   // Sets up bindings for our custom context menu
-  ContextMenu.mainBindings(ipcMain, win, Menu, isDev, {
-    "loudAlertTemplate": [{
-      id: "loudAlert",
-      label: "AN ALERT!"
-    }],
-    "softAlertTemplate": [{
-      id: "softAlert",
-      label: "Soft alert"
-    }]
-  });
+  // ContextMenu.mainBindings(ipcMain, win, Menu, isDev, {
+  //   "loudAlertTemplate": [{
+  //     id: "loudAlert",
+  //     label: "AN ALERT!"
+  //   }],
+  //   "softAlertTemplate": [{
+  //     id: "softAlert",
+  //     label: "Soft alert"
+  //   }]
+  // });
 
   // Setup bindings for offline license verification
   SecureElectronLicenseKeys.mainBindings(ipcMain, win, fs, crypto, {
@@ -192,7 +262,7 @@ async function createWindow() {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    win = null;
+    // win = null;
   });
 
   // https://electronjs.org/docs/tutorial/security#4-handle-session-permission-requests-from-remote-content
@@ -223,6 +293,8 @@ async function createWindow() {
   //     });
   //   }
   // });
+  
+  
 
   menuBuilder = MenuBuilder(win, app.name);
   
@@ -263,18 +335,31 @@ protocol.registerSchemesAsPrivileged([{
 // Some APIs can only be used after this event occurs.
 app.on("ready", createWindow);
 
-// Quit when all windows are closed.
-app.on("window-all-closed", () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== "darwin") {
-    app.quit();
-  } else {
-    i18nextBackend.clearMainBindings(ipcMain);
-    ContextMenu.clearMainBindings(ipcMain);
-    SecureElectronLicenseKeys.clearMainBindings(ipcMain);
+
+
+app.on('window-all-closed', () => {
+  // if (process.platform !== 'darwin') {
+  //   app.quit()
+  //   win = null
+  // }
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow()
   }
-});
+})
+
+
+// // Quit when all windows are closed.
+// app.on("window-all-closed", () => {
+//   // On macOS it is common for applications and their menu bar
+//   // to stay active until the user quits explicitly with Cmd + Q
+//   if (process.platform !== "darwin") {
+//     app.quit();
+//   } else {
+//     i18nextBackend.clearMainBindings(ipcMain);
+//     ContextMenu.clearMainBindings(ipcMain);
+//     SecureElectronLicenseKeys.clearMainBindings(ipcMain);
+//   }
+// });
 
 app.on("activate", () => {
   // On macOS it's common to re-create a window in the app when the
@@ -360,43 +445,78 @@ app.on("web-contents-created", (event, contents) => {
 });
 
 
+
+
 const fileName = "clipboard.db";
+
 
 ipcMain.on("pushClip",async  (event, args) =>
 {
   const db = dbFactory(app.getPath("userData"), fileName)
   const {clip} = args;
-  pushClip(db, clip);
+  const lol = await db.find({});
+  await pushClip(db, clip);
+  // db.find
 })
+
+ipcMain.handle('getLatestClipboard', async (event) =>
+{
+    return clipboard.readText();
+})
+
+// deleteClip
+
+ipcMain.handle('deleteClip', async (event, args) =>
+{
+  try {
+    const db = dbFactory(app.getPath("userData"), fileName)
+    await deleteClip(db, args)
+  }
+  catch (eror)
+  {
+    console.log("ERROR", eror)
+  }
+})
+
 
   ipcMain.handle('search', async (event, args) =>
   {
-    const db = dbFactory(app.getPath("userData"), fileName)
-    const proxies = findAll(db)
-    return proxies;
+    try {
+      const db = dbFactory(app.getPath("userData"), fileName)
+      const proxies = await findAll(db)
+      return proxies;
+    }
+    catch (eror)
+    {
+      console.log("ERROR", eror)
+      return [];
+    }
+    // console.log("FINAL ALL", proxies);
   })
-  async function pasteFromHistory(arg) 
+  function pasteFromHistory(arg) 
   {
         try
         {
-          await clipboard.writeText(arg, "selection");
-          await keyboard.pressKey(Key.LeftShift, Key.Insert);
-          await keyboard.releaseKey(Key.LeftShift, Key.Insert);
-      }
+          clipboard.writeText(arg);
+          setTimeout(() =>
+          {
+            sound.play(path.join(__dirname, "../../resources/sonds/paste.mp3"));
+            robot.keyTap("insert","shift");
+          }, 300)
+        }
       catch (error)
       {
         console.log("PASE FROM HISTORY ERROR ++++ ", error)
       }
   }
   
-  async function getClipboardText(arg) {
-    const tempWindow = new BrowserWindow({ show: false, width: 500, height: 300  })  
-    await pasteFromHistory(arg)  
-    tempWindow.close()
+  function getClipboardText(arg) {
+    // const tempWindow = new BrowserWindow({ show: false, width: 500, height: 300  })  
+    pasteFromHistory(arg)  
+    // tempWindow.close()
   }
-  
 
-ipcMain.on("close-me", async (event, args) =>
+ipcMain.on("close-me", (event, args) =>
 {
   const window = BrowserWindow.fromWebContents(event.sender);  
   if (window)
@@ -406,14 +526,28 @@ ipcMain.on("close-me", async (event, args) =>
   }
 })
 
+ipcMain.on("close", async (event) =>
+{
+  const window = BrowserWindow.fromWebContents(event.sender);  
+  if (window)
+  {
+    window.close();
+  }
+})
+
+
   // ipcMain.on("fetch-data", (event, args) =>
   // {
   //   win.webContents.send("")
   // })
 
 
-
 // ipcMain.on("historyToMain", (event, args) =>
 // {
 //   win.webContents.send("historyFromMain", args);
 // })
+
+
+
+
+

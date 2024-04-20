@@ -113,8 +113,6 @@ class Nav extends React.Component {
     {
       console.log("Navigate copy error", error)
     }
-    console.log("FRON END COPY", window.location)
-
   }
 
   handlePaste()
@@ -206,62 +204,64 @@ class Nav extends React.Component {
 
   render() {
     return (
-      <nav
-        className="navbar is-dark"
-        role="navigation"
-        aria-label="main navigation">
-        <div className="navbar-brand">
-          <a
-            role="button"
-            className={`navbar-burger ${
-              this.state.mobileMenuActive ? "is-active" : ""
-            }`}
-            data-target="navbarBasicExample"
-            aria-label="menu"
-            aria-expanded="false"
-            onClick={this.toggleMenu}
-            onKeyDown={this.toggleMenu}>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-          </a>
-        </div>
-        <div
-          id="navbarBasicExample"
-          className={`navbar-menu ${
-            this.state.mobileMenuActive ? "is-active" : ""
-          }`}>
-          <div className="navbar-start">
-          <a
-              className="navbar-item"
-              onClick={() => this.navigate(ROUTES.COPY)}
-              onKeyDown={() => this.navigate(ROUTES.COPY)}>
-              Copy
-            </a>
-            <a
-              className="navbar-item"
-              onClick={() => this.navigate(ROUTES.PASTE)}
-              onKeyDown={() => this.navigate(ROUTES.PASTE)}>
-              Paste
-            </a>
+      <>
+      </>
+      // <nav
+      //   className="navbar is-dark"
+      //   role="navigation"
+      //   aria-label="main navigation">
+      //   <div className="navbar-brand">
+      //     <a
+      //       role="button"
+      //       className={`navbar-burger ${
+      //         this.state.mobileMenuActive ? "is-active" : ""
+      //       }`}
+      //       data-target="navbarBasicExample"
+      //       aria-label="menu"
+      //       aria-expanded="false"
+      //       onClick={this.toggleMenu}
+      //       onKeyDown={this.toggleMenu}>
+      //       <span aria-hidden="true"></span>
+      //       <span aria-hidden="true"></span>
+      //       <span aria-hidden="true"></span>
+      //     </a>
+      //   </div>
+      //   <div
+      //     id="navbarBasicExample"
+      //     className={`navbar-menu ${
+      //       this.state.mobileMenuActive ? "is-active" : ""
+      //     }`}>
+      //     <div className="navbar-start">
+      //     <a
+      //         className="navbar-item"
+      //         onClick={() => this.navigate(ROUTES.COPY)}
+      //         onKeyDown={() => this.navigate(ROUTES.COPY)}>
+      //         Copy
+      //       </a>
+      //       <a
+      //         className="navbar-item"
+      //         onClick={() => this.navigate(ROUTES.PASTE)}
+      //         onKeyDown={() => this.navigate(ROUTES.PASTE)}>
+      //         Paste
+      //       </a>
 
 
-          </div>
-          {this.renderLicenseModal()}
-          <div className="navbar-end">
-            <div className="navbar-item">
-              <div className="buttons">
-                <a
-                  className="button is-light"
-                  onClick={this.toggleLicenseModal}
-                  onKeyDown={this.toggleLicenseModal}>
-                  Check license
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      //     </div>
+      //     {this.renderLicenseModal()}
+      //     <div className="navbar-end">
+      //       <div className="navbar-item">
+      //         <div className="buttons">
+      //           <a
+      //             className="button is-light"
+      //             onClick={this.toggleLicenseModal}
+      //             onKeyDown={this.toggleLicenseModal}>
+      //             Check license
+      //           </a>
+      //         </div>
+      //       </div>
+      //     </div>
+      //   </div>
+      // </nav>
     );
   }
 }
