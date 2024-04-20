@@ -1,5 +1,6 @@
 // import * as fs from 'graceful-fs';
 import Document from "flexsearch/dist/module/document";
+import _ from "lodash";
 
 export interface IndexedDocument 
 {
@@ -28,6 +29,7 @@ export const initiateIndex = async () =>
     window.api.search('*')
         .then((results: any[]) => {
             // use results
+            // results = _.uniqBy(results, function(o) {return o.text})
             results.forEach((result: any) =>
             {
                 let newObject = {id: result._id, title: result.snippet.title, text: result.snippet.text, variables: result.variables};

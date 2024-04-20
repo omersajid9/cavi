@@ -1,4 +1,4 @@
-import { values } from "lodash";
+import _, { values } from "lodash";
 import { Variable, Variables } from "../constants/interfaces/copy/copy";
 import { Show } from "../pages/paste/paste";
 import { HighlightProp } from "./copy";
@@ -42,6 +42,5 @@ export const generateHighlightMap = (_show: Show): HighlightProp[] =>
         })
     })
 
-    highlightMap = highlightMap.length > 1 ? highlightMap.sort((a, b) => a['index'] - b['index']): highlightMap;
     return highlightMap;
 }

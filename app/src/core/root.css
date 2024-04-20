@@ -41,3 +41,31 @@ body {
 {
   background-color: #FFD700;
 }
+
+
+.font-color-grey
+{
+  color: #a37cf0;
+  display:inline-block;width:fit-content;
+}
+
+.font-color-blue 
+{
+  color: #b1d5e5;
+  display:inline-block;
+  width:min-content;
+}
+.font-color-pink
+{
+  color: pink;
+  display:inline-block;width:fit-content;
+}
+.font-color-green
+{
+  color: #00FF00;
+  display:inline-block;width:fit-content;
+}
+.font-color-yellow
+{
+  color: #FFD700;
+}

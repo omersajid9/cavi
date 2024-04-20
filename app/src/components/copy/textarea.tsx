@@ -1,11 +1,11 @@
-import React, { Ref, useRef } from "react";
+import React, { ChangeEvent, Ref, useRef } from "react";
 import { ConnectedProps, connect } from "react-redux";
 import { UNDO, REDO, CLEAR, GROUPBEGIN, GROUPEND } from "easy-redux-undo";
 import { RootState } from "../../redux/store/store";
-import { setCopyCurrentHighlight, setCopyCurrentVariableName } from "../../redux/components/copy/copySlice";
+import { setCopyCurrentHighlight, setCopyCurrentVariableName, clearCopyCurrentVariableIndex } from "../../redux/components/copy/copySlice";
 import { checkValidHighlight, createVariable, generateHighlightHtml, highlightAll } from "../../helpers/copy";
 import _ from "lodash";
-import { FaRedoAlt, FaUndoAlt } from "react-icons/fa";
+import { FaEdit, FaRedoAlt, FaUndoAlt } from "react-icons/fa";
 
 
 const mapStateToProps = (state: RootState) => ({
@@ -15,7 +15,7 @@ const mapStateToProps = (state: RootState) => ({
     future: state.copy.future
 })
 
-const mapDispatch = { setCopyCurrentHighlight, setCopyCurrentVariableName, UNDO, REDO, GROUPBEGIN, GROUPEND };
+const mapDispatch = { setCopyCurrentHighlight, setCopyCurrentVariableName, clearCopyCurrentVariableIndex, UNDO, REDO, GROUPBEGIN, GROUPEND };
 const connector = connect(mapStateToProps, mapDispatch);
 
 type PropsFromRedux = ConnectedProps<typeof connector>
@@ -23,7 +23,7 @@ type PropsFromRedux = ConnectedProps<typeof connector>
 
 interface Props extends PropsFromRedux
 {
-
+    onTextChange: (event: ChangeEvent<HTMLTextAreaElement>)=>void
 }
 
 interface State
@@ -33,6 +33,8 @@ interface State
     scrollPositionX: number;
     scrollRef: React.RefObject<HTMLDivElement>;
     colorNames: string[];
+    textarea: string;
+    edit: boolean;
 }
 
 
@@ -46,12 +48,15 @@ class Textarea extends React.Component<Props, State>
         this.state = 
         {
             backdropHtml: "BOO",
+            textarea: props.copy.snippet.text,
             scrollPositionY: 0,
             scrollPositionX: 0,
             scrollRef: React.createRef(),
-            colorNames: ['grey', 'pink', 'blue', 'green', 'yellow']
+            colorNames: ['grey', 'pink', 'blue', 'green', 'yellow'],
+            edit: false
 
         }
+        console.log("INIT", props.copy.snippet.text)
 
         this.handleMouseUpTextarea = this.handleMouseUpTextarea.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
@@ -59,6 +64,32 @@ class Textarea extends React.Component<Props, State>
         this.GROUPBEGIN = this.GROUPBEGIN.bind(this);
         this.GROUPEND = this.GROUPEND.bind(this);
         this.REDO = this.REDO.bind(this);
+
+        this.handleChangeTextarea = this.handleChangeTextarea.bind(this);
+
+        this.edit = this.edit.bind(this);
+
+
+    }
+
+    edit()
+    {
+        var elem = document.getElementById('copyTextArea') as HTMLTextAreaElement
+        var icon = document.querySelector("svg.copy-edit") as SVGAElement;
+        if (this.state.edit)
+        {
+            icon.setAttribute('fill', 'grey');
+            this.GROUPEND()
+            this.setState({ edit: false });
+            elem.readOnly = true; 
+        }
+        else
+        {
+            icon.setAttribute('fill', 'blue');
+            this.GROUPBEGIN()
+            this.setState({ edit: true });
+            elem.readOnly = false
+        }
     }
 
     REDO(event: any)
@@ -83,17 +114,25 @@ class Textarea extends React.Component<Props, State>
         this.props.UNDO();
     }
 
+    
+
     static getDerivedStateFromProps(nextProps: Props, prevState: State)
     {
-        console.log(nextProps)
         if (nextProps.copy.currentVariable.indexes.length || Object.keys(nextProps.copy.variables).length)
         {
-            return {backdropHtml: generateHighlightHtml()};
+            return {backdropHtml: generateHighlightHtml(), textarea: nextProps.copy.snippet.text};
         }
         else
         {
-            return {backdropHtml: nextProps.copy.snippet.text.replace(/(<|>)/g, '~')};
+            return {backdropHtml: nextProps.copy.snippet.text.replace(/(<|>)/g, '~'), textarea: nextProps.copy.snippet.text};
         }
+    }
+
+    handleChangeTextarea(event: ChangeEvent<HTMLTextAreaElement>)
+    {
+        this.props.clearCopyCurrentVariableIndex();
+        this.setState({ textarea: event.target.value });
+        this.props.onTextChange(event);
     }
 
     handleMouseUpTextarea()
@@ -135,24 +174,10 @@ class Textarea extends React.Component<Props, State>
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
         requestAnimationFrame(() =>
         {
-            if (prevState.scrollRef?.current)
+            if (this.state.scrollRef?.current)
             {
-                console.log("SCORLL HEIGHT", prevState.scrollRef.current.scrollHeight);
-                console.log("Client HEIGHT", prevState.scrollRef.current.clientHeight);
-                console.log("OFFSET HEIGHT", prevState.scrollRef.current.offsetHeight);
-                console.log("REFF POSS", prevState.scrollPositionY);
 
-                // if (prevState.scrollRef.current.scrollHeight - prevState.scrollRef.current.clientHeight > prevState.scrollPositionY)
-                // {
-                    prevState.scrollRef?.current.scrollTo({top: prevState.scrollPositionY, left: prevState.scrollPositionX, behavior: 'instant'})    
-                // }
-                // else
-                // {
-                //     // var po = (Math.abs(prevState.scrollRef.current.scrollHeight +(- prevState.scrollRef.current.clientHeight + prevState.scrollRef.current.offsetHeight)*2 - prevState.scrollPositionY))
-                //     // console.log("ELSING", po)
-                //     prevState.scrollRef?.current.scrollTo({top: 10000, behavior: 'instant'})    
-                // }
-                // if (prevState.scrollPositionY udocment.getElementById("").innerHeight)
+                this.state.scrollRef?.current.scrollTo({top: this.state.scrollPositionY, left: this.state.scrollPositionX, behavior: 'instant'})    
             }
         })
     }
@@ -160,21 +185,26 @@ class Textarea extends React.Component<Props, State>
     render()
     {
         return (
-            <div className="container" >
-                <div style={{display: "flex", justifyContent: "space-around"}}>
-                <FaUndoAlt style={{color: "red"}} onClick={(event)=>this.UNDO(event)}/>
-                <FaRedoAlt style={{color: "green"}} onClick={(event)=>this.REDO(event)}/>
+            <>
+                <div style={{display: "flex", justifyContent: "space-around", margin: "14px 0px", width: "100%"}}>
+                <FaUndoAlt className="copy-undo" style={{width: "30vw"}} onClick={(event)=>this.UNDO(event)}/>
+                    <FaEdit className="copy-edit" style={{ width: "30vw", fill: this.state.edit ? "blue !important": "grey !important" }} onClick={this.edit}/>
+                    <FaRedoAlt className="copy-redo" style={{ width: "30vw" }} onClick={(event) => this.REDO(event)} />
                 </div>
+
+            <div className="container" >
                 <div className="container-copy">
                     <div className="backdrop"  ref={this.state.scrollRef}>
                         <div className="highlights" >
                             <div dangerouslySetInnerHTML={{__html: this.state.backdropHtml}} ></div>
                         </div>
                     </div>
-                    <textarea id="copyTextArea"  value={this.props.copy.snippet.text} onMouseUp={this.handleMouseUpTextarea} onScroll={this.handleScroll} readOnly/>
+                    <textarea id="copyTextArea" readOnly value={this.state.textarea} onChange={this.handleChangeTextarea} onMouseUp={this.handleMouseUpTextarea} onScroll={this.handleScroll}/>
+                </div>
 
                 </div>
-            </div>
+
+            </>
         )
     }
 }

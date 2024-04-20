@@ -41,7 +41,6 @@ const searchSlice = createSlice(
                 // Assuming the payload is the new search value
               })
                 .addCase(initiateIndex.rejected, (state, action) => {
-                  console.log("FUCK THINK")
               });
          },
     }

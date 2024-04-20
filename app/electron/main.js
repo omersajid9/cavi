@@ -68,7 +68,6 @@ async function createWindow() {
 
   const myEmitter = new EventEmitter();
 
-  
   // Use saved config values for configuring your
   // BrowserWindow, for instance.
   // NOTE - this config is not passcode protected
@@ -94,13 +93,15 @@ async function createWindow() {
       /* eng-disable PRELOAD_JS_CHECK */
       disableBlinkFeatures: "Auxclick",
     },
+    icon: path.join(__dirname, 'resources/icon.png'),
     titleBarStyle: 'hidden',
-    borderRadius: 100
-    // transparent: true
-
+    borderRadius: 100,
+    transparent: true,
+    backgroundColor: "#cdcdce"
   });
 
 
+  // win.setPosition(10, 10);
 
   const copyToClipboard = () =>
   {
@@ -117,26 +118,31 @@ async function createWindow() {
   })
 
   function checkClipboardChanged(){
-    const fileName = "clipboard.db";
+    const fileName = "temp.db";
 
     let cache = clipboard.readText()
     let latest
     setInterval( async () => {
 
+      try {
         latest = clipboard.readText()
 
-      if (latest !== cache && latest.length > 0) {
-          console.log("COPYING", cache, latest)
-            cache = latest
-            const db = dbFactory(app.getPath("userData"), fileName)
-          const clip = { snippet: { title: cache, text: cache }, variables: [] };
-            // await pushClip(db, clip)
-        }
+        if (latest !== cache && latest.length > 0) {
+            console.log("CACHE", cache, "COPYING", latest)
+          cache = latest
+              const db = dbFactory(app.getPath("userData"), fileName)
+            const clip = { snippet: { title: cache.substring(0, 8), text: cache }, variables: [] };
+              await pushClip(db, clip)
+          }
+        
+      } catch (error) {
+        
+      }
 
     }, 1000) 
 }
 
-
+  checkClipboardChanged();
   // Register global shortcut
   globalShortcut.register(COPY_SHORTCUT, async () => {
 
@@ -144,16 +150,19 @@ async function createWindow() {
     {
       setTimeout(async () =>
       {
-        await copyToClipboard()
-        .then(() =>
-        {
-          setTimeout(() =>
+          await copyToClipboard()
+          .then(() =>
           {
-            win?.webContents.send('open-copy')
-            myEmitter.emit("show");  
-          }, 300)
-        })
-      }, 200)
+            setTimeout(() =>
+            {
+              myEmitter.emit("show");  
+              win?.webContents.send('open-copy')
+            }, 100)
+          }).catch((error) =>
+          {
+            console.log("Error copying from clipboard")
+          })         
+      }, 400)
     }
     catch (error)
     {
@@ -162,7 +171,7 @@ async function createWindow() {
   })
   
   globalShortcut.register(PASTE_SHORTCUT,async () => {
-    win?.show();
+    myEmitter.emit("show"); 
     win?.webContents.send('open-paste')
   })
 
@@ -172,15 +181,18 @@ async function createWindow() {
     globalShortcut.register(copy_num, async () =>
     {
       let num = copy_num.split("+")[1];
-      await copyToClipboard().then(() =>
+      setTimeout(async () =>
       {
-        const hotDb = dbFactory(app.getPath("userData"), "hotkey.db")
-        setTimeout(() =>
+        await copyToClipboard().then(() =>
         {
-          const cl = clipboard.readText()
-          pushHotKey(hotDb, cl, num)
-        }, 400)      
-      })
+          const hotDb = dbFactory(app.getPath("userData"), "hotkey.db")
+          setTimeout(() =>
+          {
+            const cl = clipboard.readText()
+            pushHotKey(hotDb, cl, num)
+          }, 100)      
+        })
+      }, 400) 
     })
   })
 
@@ -192,11 +204,14 @@ async function createWindow() {
     {
       let num = paste_num.split("+")[1];
       const hotDb = dbFactory(app.getPath("userData"), "hotkey.db")
-      await getHotKey(hotDb, num).then(async (getresult) =>
+      setTimeout(async () =>
       {
-        await pasteFromHistory(getresult[0]['text'])
-  
-      })
+        await getHotKey(hotDb, num).then(async (getresult) =>
+        {
+          await pasteFromHistory(getresult[0]['text'])
+    
+        })        
+      }, 400)
     })
   })
 
@@ -262,7 +277,7 @@ async function createWindow() {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    // win = null;
+    win = null;
   });
 
   // https://electronjs.org/docs/tutorial/security#4-handle-session-permission-requests-from-remote-content
@@ -342,7 +357,7 @@ app.on('window-all-closed', () => {
   //   app.quit()
   //   win = null
   // }
-  if (BrowserWindow.getAllWindows().length === 0) {
+  if (BrowserWindow.getAllWindows().length === 0 && win === null) {
     createWindow()
   }
 })
@@ -447,7 +462,7 @@ app.on("web-contents-created", (event, contents) => {
 
 
 
-const fileName = "clipboard.db";
+const fileName = "temp.db";
 
 
 ipcMain.on("pushClip",async  (event, args) =>
@@ -459,9 +474,14 @@ ipcMain.on("pushClip",async  (event, args) =>
   // db.find
 })
 
-ipcMain.handle('getLatestClipboard', async (event) =>
+ipcMain.handle('getLatestClipboard', (event) =>
 {
-    return clipboard.readText();
+
+    try {
+      return clipboard.readText();
+    } catch (error) {
+      console.log("ERROR FROM COPYING", error)
+    }
 })
 
 // deleteClip
@@ -491,7 +511,6 @@ ipcMain.handle('deleteClip', async (event, args) =>
       console.log("ERROR", eror)
       return [];
     }
-    // console.log("FINAL ALL", proxies);
   })
   function pasteFromHistory(arg) 
   {
@@ -501,24 +520,30 @@ ipcMain.handle('deleteClip', async (event, args) =>
           setTimeout(() =>
           {
             sound.play(path.join(__dirname, "../../resources/sonds/paste.mp3"));
+            robot.mouseClick();
             robot.keyTap("insert","shift");
-          }, 300)
+          }, 100)
         }
       catch (error)
       {
         console.log("PASE FROM HISTORY ERROR ++++ ", error)
       }
-  }
+} 
   
   function getClipboardText(arg) {
     // const tempWindow = new BrowserWindow({ show: false, width: 500, height: 300  })  
     pasteFromHistory(arg)  
     // tempWindow.close()
-  }
+} 
+  
+ipcMain.on("exit", () =>
+{
+  app.exit();
+})
 
 ipcMain.on("close-me", (event, args) =>
 {
-  const window = BrowserWindow.fromWebContents(event.sender);  
+  const window = BrowserWindow.fromWebContents(event.sender); 
   if (window)
   {
     getClipboardText(args)

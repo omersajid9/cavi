@@ -1,7 +1,7 @@
 import React from "react";
 import { Show } from "../../pages/paste/paste";
 import Textarea from "./textarea";
-import { FaBackspace } from "react-icons/fa";
+import { FaBackspace, FaRegTrashAlt, FaTrash, FaTrashAlt, FaTrashRestore } from "react-icons/fa";
 interface Props 
 {
     show: Show;
@@ -44,7 +44,6 @@ class SearchTextarea extends React.Component<Props, State>
 
     increaseInput()
     {
-        console.log("MEMEME")
         this.setState((state) => ({show: state.show, drop: state.drop, refresh: state.refresh, print_string: state.print_string, inputs: state.inputs + 1}))
     }
 
@@ -56,7 +55,6 @@ class SearchTextarea extends React.Component<Props, State>
 
     setPrintString(text: string, idx: number)
     {
-        console.log("SET PRINT STRING TRIGGERED", text)
         var change = this.state.print_string;
         change[idx] = text;
         this.setState({ print_string: change });
@@ -75,7 +73,7 @@ class SearchTextarea extends React.Component<Props, State>
         var text = this.state.print_string;
         text.forEach((t) =>
             {
-                printing += t;
+                printing += t + "\n";
         })
         window.api.paste(printing);
     }
@@ -89,9 +87,7 @@ class SearchTextarea extends React.Component<Props, State>
         }
     }
     shouldComponentUpdate(nextProps: Props, nextState: State) {
-        console.log("TRYING", "this state", this.state, "next state", nextState)
         var logic = this.state.inputs != nextState.inputs || this.state.drop != nextState.drop  || (nextState.refresh != this.state.refresh && nextState.refresh == true) || nextState.show.id != this.state.show.id || nextProps.show.id !== this.props.show.id
-        console.log("REFRESH ", logic ? "true": "false")
         return logic
         // Compare the next props with the current props
         // Return true if you want the component to re-render, false otherwise
@@ -103,13 +99,16 @@ class SearchTextarea extends React.Component<Props, State>
     render()
     {
         return (
-            <div onMouseOver={() => this.setState({ drop: true })} onMouseOut={() => this.setState({ drop: false })}>
-                <div style={{display: "flex", justifyContent: "space-between", width: "80vw", margin: "0px"}}>
-                    <h1 onClick={this.onTitleClick} style={{ fontWeight: 'bold' }} onMouseOver={() => this.setState({ drop: true })} onMouseOut={() => this.setState({ drop: false })}>{this.state.show.title.substring(0, 40)}{this.props.show.title.length>40?"...":""}</h1>
-                    <FaBackspace style={{color: "red"}}  onClick={()=> this.onDeleteClick(this.state.show.id)}/> 
+            <div onMouseOver={() => this.setState({ drop: true })} onMouseOut={() => this.setState({ drop: false })} style={{width: "100%"}}>
+                {this.state.show ?
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%", margin: "0px" }}>
+                    <div><span onClick={this.onTitleClick} style={{ fontWeight: 'bold' }} onMouseOver={() => this.setState({ drop: true })} onMouseOut={() => this.setState({ drop: false })}>{this.state.show.title.substring(0, 40)}{this.props.show.title.length>40?"...":""} </span><span style={{marginLeft: "20px"}}>({this.state.show.variables.length} var)</span></div>
+                    <FaRegTrashAlt className="paste-delete" onClick={() => this.onDeleteClick(this.state.show.id)} /> 
                 </div>
-                {this.state.drop ? 
-                    <p style={{overflow: "hidden"}} >
+                    :
+                    <></>}
+                {this.state.drop && this.state.show ? 
+                    <p style={{overflow: "hidden", width: "100%"}} >
                         {
                             [...Array(this.state.inputs + 1)].map((_, idx) =>
                             (

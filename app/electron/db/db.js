@@ -22,6 +22,7 @@ const pushHotKey = async (db, text, idx) =>
         {
             await db.deleteMany({ key: idx });
         }
+        sound.play(path.join(__dirname, "../../../resources/sonds/copy.mp3"));
         await db.insert({key:idx, text: text});
     })
 }
@@ -36,8 +37,15 @@ const pushClip = async (db, Clip) =>
 {    
     if (Clip && Clip.snippet.text && Clip.snippet.text.length > 0) 
     {
-        sound.play(path.join(__dirname, "../../../resources/sonds/copy.mp3"));
-        await db.insert(Clip);
+        db.count({"snippet.text": Clip.snippet.text, "snippet.title": Clip.snippet.title}).then( async (val) =>
+        {
+            if (val > 0)
+            {
+                await db.deleteMany({ "snippet.text": Clip.snippet.text, "snippet.title": Clip.snippet.title });
+            }
+            sound.play(path.join(__dirname, "../../../resources/sonds/copy.mp3"));
+            await db.insert(Clip);
+        })
     }
 }
 

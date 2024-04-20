@@ -6,7 +6,7 @@ import SearchTextarea from "../../components/paste/searchTextarea"
 import './paste.css'
 import { Variable } from "../../constants/interfaces/copy/copy";
 import { initiateIndex } from "../../redux/components/search/searchSlice";
-import { FaList, FaRegWindowClose, FaSearch } from "react-icons/fa";
+import { FaDoorOpen, FaList, FaRegWindowClose, FaSearch } from "react-icons/fa";
 const mapStateToProps = (state: RootState) =>
 ({
     search: state.search
@@ -63,7 +63,12 @@ class Paste extends React.Component<Props, State>
 
         this.refresh = this.refresh.bind(this);
         this.closeWindow = this.closeWindow.bind(this);
+        this.exit = this.exit.bind(this);
+    }
 
+    exit()
+    {
+        window.api.send("exit");
     }
 
     closeWindow()
@@ -86,7 +91,8 @@ class Paste extends React.Component<Props, State>
             {
                 searchResult[0].result.map((_id: string) =>
                 {
-                    let lodash: Show = _.find(this.state.all, {id: _id}) as Show
+                    let lodash: Show = _.find(this.state.all, { id: _id }) as Show
+                    if (lodash)
                     shows.push(lodash)
                 })
                 this.setState((_state) => ({query: value, all: _state.all, search: shows}));
@@ -122,12 +128,12 @@ class Paste extends React.Component<Props, State>
                 let single = all[allIndex];
                 return single;
             });
+                resultArray = _.uniqBy(resultArray, function(o) {return o.text+o.title+Object.keys(o.variables).join("")})
             
                 this.setState({ all: resultArray });
                 this.setState({search: []})
                 }}, 100)
             }
-        
     }
 
 
@@ -148,7 +154,7 @@ class Paste extends React.Component<Props, State>
     {
         return (
             <React.Fragment>
-                <div className='titlebar'><div></div><div>cavi</div><FaRegWindowClose style={{color: "red"}} className='title-closeme' onClick={this.closeWindow}/></div>
+                <div className='titlebar'><FaDoorOpen style={{width: "20px"}} className='title-exit'  onClick={this.exit} /><div id='app-title' style={{ userSelect: "none" }}><span className='font-color-pink'>c</span><span className='font-color-yellow'>a</span><span className='font-color-blue'>v</span><span className='font-color-grey'>i</span></div><FaRegWindowClose style={{width: "20px"}} className='title-closeme' onClick={this.closeWindow} /></div>
 
                 <div className=" bg-black copy-body">
                     <div style={{ display: "flex", justifyContent: "space-around" }}>
@@ -159,34 +165,38 @@ class Paste extends React.Component<Props, State>
                     
                         <div style={{marginTop: "20px"}}>
                             <input className='input' value={this.state.query} onChange={this.onChangeQuery} placeholder='Search for snippets'/>
-                            <table >
+                            {/* <table > */}
                             {
                                 this.state.search.map((item, idx) => 
                                 (
                                     <>
                                         <div>
-                                            {<tr ><SearchTextarea refresh={this.refresh} show={item} /></tr>}
+                                            {/* {<tr > */}
+                                                <SearchTextarea refresh={this.refresh} show={item} />
+                                            {/* </tr>} */}
                                             
                                         </div>
                                     </>
                                 ))
                             }
-                            </table>
+                            {/* </table> */}
                         </div>
                         :
                         <div style={{marginTop: "20px"}}>
-                            <table>
+                            {/* <table> */}
                             {
                                 this.state.all.map((item, idx) => 
                                 (
                                     <>
                                         <div>
-                                        {<tr><SearchTextarea refresh={this.refresh} show={item} /></tr>}
+                                            {/* {<tr> */}
+                                                <SearchTextarea refresh={this.refresh} show={item} />
+                                            {/* </tr>} */}
                                         </div>
                                     </>
                                 ))
                             }
-                            </table>
+                            {/* </table> */}
                         </div>
                     }
                     

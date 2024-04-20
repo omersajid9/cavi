@@ -1,7 +1,7 @@
 {
-  "name": "secure-electron-template",
-  "version": "22.0.1",
-  "description": "The best way to build Electron apps with security in mind.",
+  "name": "cavi",
+  "version": "0.0.1",
+  "description": "your local smart clipboard",
   "private": true,
   "main": "app/electron/main.js",
   "scripts": {
@@ -54,7 +54,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reZach/secure-electron-template.git"
+    "url": "git+https://github.com/omersajid9/cavi.git"
   },
   "keywords": [
     "electron",
@@ -68,12 +68,12 @@
     "i18n",
     "boilerplate"
   ],
-  "author": "reZach",
+  "author": "mome",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/reZach/secure-electron-template/issues"
+    "url": "https://github.com/omersajid9/cavi/issues"
   },
-  "homepage": "https://github.com/reZach/secure-electron-template#readme",
+  "homepage": "https://github.com/omersajid9/cavi#readme",
   "browserslist": [
     "last 2 Chrome versions"
   ],
@@ -122,7 +122,6 @@
   "dependencies": {
     "@jitsi/robotjs": "^0.6.13",
     "@loadable/component": "^5.15.2",
-    "@nut-tree/nut-js": "^3.1.2",
     "@reduxjs/toolkit": "^1.8.3",
     "@types/nedb": "^1.8.16",
     "bulma": "^0.9.4",

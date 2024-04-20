@@ -54,11 +54,12 @@ contextBridge.exposeInMainWorld("api", {
   {
     ipcRenderer.send("close-me", text);
   },
+  exit: () => {ipcRenderer.send('exit')},
   close: () =>
   {
     ipcRenderer.send("close");
   },
-  getClipboard: async () => await ipcRenderer.invoke('getLatestClipboard'),
+  getClipboard: () => ipcRenderer.invoke('getLatestClipboard'),
   addToSearch: async (clip) => await ipcRenderer.invoke('addToSearch', clip),
 
 });

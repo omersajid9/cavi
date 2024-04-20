@@ -18,12 +18,10 @@ export const highlightAll = () =>
 
     if (highlight[0] == highlight[1])
     {
-        // console.log("Sorry, no range in highlight");
         return;
     }
     else if (!textToReplace)
     {
-        // console.log("Sorry, nothing to highlight");
         store.dispatch(clearCopyCurrentVariableIndex());
         return;
     }
@@ -32,9 +30,32 @@ export const highlightAll = () =>
 
     const regex: RegExp = new RegExp(""+_.escapeRegExp(textToReplace)+"", "g");
     const matches: number[] = findAllMatches(text, regex);
+
+    var indexes: number[] = [];
+
+    if (state.copy.present.copy.variables)
+    {
+        Object.keys(state.copy.present.copy.variables).forEach((var_name) =>
+        {
+            let variable: Variable = state.copy.present.copy.variables[var_name];
+            variable.indexes.forEach((index) =>
+            {
+                indexes.push(index);
+            })
+        })     
+    }
+    
+        
     matches.forEach((index: number) => 
     {
-        store.dispatch(pushCopyCurrentVariableIndex(index));
+        console.log(indexes, index, !indexes.length, indexes.indexOf(index))
+        if (indexes.length == 0 || indexes.indexOf(index) < 0) {
+            store.dispatch(pushCopyCurrentVariableIndex(index));
+        }
+        else
+        {
+            console.log("PROBLEM HAPPENING")
+        }
     })
     store.dispatch(setCopyCurrentVariableTextToReplace(textToReplace));
 }
@@ -89,7 +110,6 @@ export const checkValidHighlight = (selectionStart: number, selectionEnd: number
     const state: RootState = store.getState();
     const variables: Variables = {...state.copy.present.copy.variables};
 
-    console.log(state)
     if (!(state.copy.present.copy.currentHighlight[0] == selectionStart && state.copy.present.copy.currentHighlight[1] == selectionEnd) && selectionStart != selectionEnd) 
     {
         var toRemove: highlightToRemove[] = [];
@@ -102,12 +122,7 @@ export const checkValidHighlight = (selectionStart: number, selectionEnd: number
                 const range = [index, index + variables[variable_name].textToReplace.length];
                 if (!(selectionStart > range[1] || selectionEnd < range[0]) || selectionStart == range[0])
                 {
-                    console.log("BRUH SAME", index)
                     temp.indexes.push(index);
-                }
-                else
-                {
-                    console.log("CHILL", range, selectionStart, selectionEnd)
                 }
             })
             if (temp.indexes.length > 0)
@@ -124,24 +139,19 @@ export const checkValidHighlight = (selectionStart: number, selectionEnd: number
                 rem['indexes'].forEach((ind) =>
                 {
                     store.dispatch(removeCopyVariableIndex({'var_name': rem['var_name'], 'ind': ind}))
-                    // console.log("BILLO", varry[rem['var_name']].indexes.filter(item => item != ind))
                     // varry[rem['var_name']].indexes = varry[rem['var_name']].indexes.filter(item => item != ind);
                 })
             })
-            console.log("FIRST FALSE")
             return false;
         }
         else
         {
-            console.log("FIRST TRUE")
             return true;
         }
-        // console.log("UPDATED VARIABLE", varry);
         // store.dispatch(setCopyVariable(varry));
     }
     else
     {
-        console.log("SECOND FALSE", selectionEnd, selectionStart, state.copy.present.copy.currentHighlight)
         return false;
         }
 }

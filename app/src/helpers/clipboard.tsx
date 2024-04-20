@@ -7,17 +7,15 @@ async function getFromClipboard() {
       var text = await window.api.getClipboard();
       var timeOut  = 10;
       var curTime = 0;
-      console.log("CLIPBOARD TRY")
       while (!text && curTime < timeOut)
       {
         setTimeout(async () =>
         {
           text = await window.api.getClipboard();
-          console.log("CLIPBOARD TEXT TRY")
           curTime += 1;
         }, 100)
       }
-      console.log("CLIPBOARD FROM HELPER CLIPBOARD", text)
+      console.log("GOT TEXT", text)
 
       const formatted = text.replace(/\r\n|\n/g, '\n');
       store.dispatch(setCopySnippetText(formatted));

@@ -1,21 +1,21 @@
 import './copy.css'
 import React, { ChangeEvent, FormEvent } from "react";
 import { ConnectedProps, connect } from "react-redux";
-import { useConfigInMainRequest, deleteConfigRequest } from "secure-electron-store";
-import { setCopySnippetTitle, setCopyCurrentVariableName, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight } from "../../redux/components/copy/copySlice";
+import { setCopySnippetTitle, setCopySnippetText,  setCopyCurrentVariableName, clearCopyCurrentVariableIndex, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight } from "../../redux/components/copy/copySlice";
 import { RootState, store } from "../../redux/store/store";
 import Textarea from "../../components/copy/textarea";
 import getFromClipboard from "../../helpers/clipboard";
 import { createVariable } from '../../helpers/copy';
 
 import { pushClip } from '../../helpers/copy';
-import { FaRegWindowClose } from 'react-icons/fa';
+import { FaDoorOpen, FaRegWindowClose, FaWindowClose } from 'react-icons/fa';
+// import img from "Images/icon.png";
 
 const mapStateToProps = (state: RootState) => ({
     copy: state.copy,
 })
 
-const mapDispatch = { setCopySnippetTitle, setCopyCurrentVariableName, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight };
+const mapDispatch = { setCopySnippetTitle, setCopyCurrentVariableName, setCopySnippetText, clearCopySnippet, clearCopyCurrentVariable, clearCopyCurrentHighlight };
 const connector = connect(mapStateToProps, mapDispatch);
 
 type PropsFromRedux = ConnectedProps<typeof connector>
@@ -56,6 +56,9 @@ class Copy extends React.Component<Props, State>
 
         this.onSearch = this.onSearch.bind(this);
         this.closeWindow = this.closeWindow.bind(this);
+        this.exit = this.exit.bind(this);
+
+        this.onTextChange = this.onTextChange.bind(this);
     }
 
     // SNIPPET METHODS
@@ -65,7 +68,11 @@ class Copy extends React.Component<Props, State>
         event.preventDefault();
         const { value } = event.target;
         this.setState((_state)=> ({snippetTitle: value}));
-        
+    }
+
+    exit()
+    {
+        window.api.send("exit");
     }
 
     closeWindow()
@@ -77,7 +84,6 @@ class Copy extends React.Component<Props, State>
     {
         event.preventDefault();
         this.props.setCopySnippetTitle(this.state.snippetTitle);
-        window.api.store.send(deleteConfigRequest);
 
         await pushClip();
 
@@ -87,7 +93,6 @@ class Copy extends React.Component<Props, State>
         this.props.clearCopyCurrentVariable();
         this.props.clearCopySnippet();
 
-        window.api.store.send(useConfigInMainRequest);
         window.api.close()
     }
 
@@ -103,7 +108,6 @@ class Copy extends React.Component<Props, State>
     onSubmitInput(event: FormEvent<HTMLFormElement>)
     {
         event.preventDefault();
-        console.log("HAPPENING")
         createVariable();
         this.props.clearCopyCurrentHighlight();
         this.props.clearCopyCurrentVariable();
@@ -115,22 +119,23 @@ class Copy extends React.Component<Props, State>
         window.api.search('hello')
         .then((results: any) => {
             // use results
-            // console.log(results)
         });
     }
 
+    onTextChange(event: ChangeEvent<HTMLTextAreaElement>)
+    {
+        this.props.setCopySnippetText(event.target.value);
+    }
+
     async componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any) {
-        // console.log("componentDidUpate")
     }
 
     
     async componentDidMount()
     {
         let billo = await getFromClipboard()
-        console.log("MOUNT", billo)
         window.api.receive('open-copy', async () =>
         {
-            console.log("CLIPBOARD MOUNT START ")
             let billo = await getFromClipboard()
             console.log("MOUNT", billo)
             // While loop for repeated cals untill we get the latest copy
@@ -138,7 +143,6 @@ class Copy extends React.Component<Props, State>
             {
                 billo = await getFromClipboard()
             }
-            window.api.store.send(useConfigInMainRequest);
         });
     }
 
@@ -146,7 +150,7 @@ class Copy extends React.Component<Props, State>
     {
         return (
             <React.Fragment>
-                <div className='titlebar'><div></div><div>cavi</div><FaRegWindowClose style={{color: "red"}} className='title-closeme' onClick={this.closeWindow}/></div>
+                <div className='titlebar'><FaDoorOpen style={{width: "20px"}} className='title-exit'  onClick={this.exit} /><div id='app-title' style={{ userSelect: "none" }}><span className='font-color-pink'>c</span><span className='font-color-yellow'>a</span><span className='font-color-blue'>v</span><span className='font-color-grey'>i</span></div><FaRegWindowClose style={{width: "20px"}} className='title-closeme' onClick={this.closeWindow} /></div>
                 <div className="copy-body" >
                         {/* SNIPPET */}
                         <div className=''>
@@ -154,7 +158,7 @@ class Copy extends React.Component<Props, State>
                                 <input className='input-name-copy input' value={this.state.snippetTitle} onChange={this.onChangeSnippetTitle} placeholder='Enter a comment'/>
 
                             </form>
-                            <Textarea />
+                            <Textarea onTextChange={this.onTextChange}/>
                         </div>
                         
                 </div>

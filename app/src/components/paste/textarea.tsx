@@ -98,6 +98,7 @@ class Textarea extends React.Component<Props, State>
                 snippet = snippet.substring(0, _hm.index) + _hm.name + snippet.substring(_hm.index+_hm.name.length);
             }
         })
+        this.state.hm.sort((a, b) => a.index - b.index);
         return snippet;
     }
     changeState(var_name: string, change: string)
@@ -115,7 +116,6 @@ class Textarea extends React.Component<Props, State>
         }
     }
     shouldComponentUpdate(nextProps: Props, nextState: State) {
-        console.log("CHECKING SHOULD UPDATE?")
         // Compare the next props with the current props
         // Return true if you want the component to re-render, false otherwise
         return nextState.inputState == this.state.inputState || nextProps.show.id !== this.props.show.id || nextState.show.id != this.state.show.id || nextState.drop != this.state.drop;
@@ -137,10 +137,10 @@ class Textarea extends React.Component<Props, State>
                 {this.state.hm.length > 0 && (this.state.hm[this.state.hm.length - 1].index + this.state.hm[this.state.hm.length - 1].name.length) < this.state.show.text.length ?
                     <span>{this.state.show.text.substring(this.state.hm[this.state.hm.length - 1].index + this.state.hm[this.state.hm.length - 1].name.length)}</span> :
                     <span></span>
-                }
+                }       
                     {this.state.hm.length == 0 ? this.state.show.text : <></>}
             </div>
-                {this.props.idx == this.props.inputs ? <div style={{ display: "flex", justifyContent: "space-around", padding: "10px 0px"}}><FaPlusCircle style={{color: "green"}} onClick={this.increaseinput}/><FaMinusCircle style={{color: "red"}} onClick={this.decreaseinput}/></div> : <></>}
+                {this.props.idx == this.props.inputs ? <div style={{ display: "flex", justifyContent: "space-around", padding: "10px 0px"}}><FaPlusCircle className="paste-add" onClick={this.increaseinput}/><FaMinusCircle className="paste-minus" onClick={this.decreaseinput}/></div> : <></>}
             </div>
         )
     }
