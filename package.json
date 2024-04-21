@@ -15,7 +15,7 @@
     "pack": "electron-builder --dir",
     "dist": "npm run test && npm run prod-build && electron-builder",
     "dist-mac": "npm run test && npm run prod-build && electron-builder --mac",
-    "dist-linux": "npm run test && npm run prod-build && electron-builder --linux",
+    "dist-linux": "npm run prod-build && electron-builder --linux",
     "dist-windows": "npm run prod-build && electron-builder --windows",
     "dist-all": "npm run test && npm run prod-build && electron-builder --mac --linux --windows",
     "test": "mocha"
@@ -68,10 +68,12 @@
     "i18n",
     "boilerplate"
   ],
-  "author": "mome",
+  "author": "mome <omersajid9@outlook.com>",
+  "email": "omersajid9@outlook.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/omersajid9/cavi/issues"
+    "url": "https://github.com/omersajid9/cavi/issues",
+    "email": "omersajid9@outlook.com"
   },
   "homepage": "https://github.com/omersajid9/cavi#readme",
   "browserslist": [
