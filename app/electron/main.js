@@ -36,6 +36,8 @@ const {
   PASTE_SHORTCUT,
   MULTI_COPY_ARRAY,
   MULTI_PASTE_ARRAY,
+  COPY_ARRAY,
+  PASTE_ARRAY
 } = require("./shortcuts");
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -107,7 +109,7 @@ async function createWindow() {
   {
     return new Promise(resolve =>
       {
-        robot.keyTap("insert", "control");
+        robot.keyTap(COPY_ARRAY[0], COPY_ARRAY[1]);
         resolve();
       })
   }
@@ -521,7 +523,7 @@ ipcMain.handle('deleteClip', async (event, args) =>
           {
             sound.play(path.join(__dirname, "../../resources/sonds/paste.mp3"));
             robot.mouseClick();
-            robot.keyTap("insert","shift");
+            robot.keyTap(PASTE_ARRAY[0], PASTE_ARRAY[1]);
           }, 100)
         }
       catch (error)
