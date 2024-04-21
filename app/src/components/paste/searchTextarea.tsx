@@ -102,7 +102,7 @@ class SearchTextarea extends React.Component<Props, State>
             <div onMouseOver={() => this.setState({ drop: true })} onMouseOut={() => this.setState({ drop: false })} style={{width: "100%"}}>
                 {this.state.show ?
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%", margin: "0px" }}>
-                    <div><span onClick={this.onTitleClick} style={{ fontWeight: 'bold' }} onMouseOver={() => this.setState({ drop: true })} onMouseOut={() => this.setState({ drop: false })}>{this.state.show.title.substring(0, 40)}{this.props.show.title.length>40?"...":""} </span><span style={{marginLeft: "20px"}}>({this.state.show.variables.length} var)</span></div>
+                    <div><span onClick={this.onTitleClick} style={{ fontWeight: 'bold' }} onMouseOver={() => this.setState({ drop: true })} onMouseOut={() => this.setState({ drop: false })}>{this.state.show.title.substring(0, 40)}{this.props.show.title.length>40?"...":""} </span></div>
                     <FaRegTrashAlt className="paste-delete" onClick={() => this.onDeleteClick(this.state.show.id)} /> 
                 </div>
                     :

@@ -210,6 +210,7 @@ async function createWindow() {
       {
         await getHotKey(hotDb, num).then(async (getresult) =>
         {
+          robot.keyTap("alt");
           await pasteFromHistory(getresult[0]['text'])
     
         })        
@@ -522,7 +523,7 @@ ipcMain.handle('deleteClip', async (event, args) =>
           setTimeout(() =>
           {
             sound.play(path.join(__dirname, "../../resources/sonds/paste.mp3"));
-            robot.mouseClick();
+            // 
             robot.keyTap(PASTE_ARRAY[0], PASTE_ARRAY[1]);
           }, 100)
         }

@@ -84,7 +84,7 @@ class Paste extends React.Component<Props, State>
         if (value.length)
         {
             let index = this.props.search.search;
-            const searchResult = index.search([{field:'title', query: value}]);
+            const searchResult = index.search(value, ['title', 'text']);
             const shows: Show[] = [];
 
             if (searchResult.length > 0)

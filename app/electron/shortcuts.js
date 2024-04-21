@@ -23,8 +23,8 @@ const MULTI_PASTE_9 = "Alt+9";
 const MULTI_COPY_0 = "CommandOrControl+0";
 const MULTI_PASTE_0 = "Alt+0";
 
-const COPY_ARRAY = ["insert", "control"];
-const PASTE_ARRAY = ["insert", "shift"];
+const COPY_ARRAY = ["c", "control"];
+const PASTE_ARRAY = ["v", "control"];
 
 
 const MULTI_COPY_ARRAY = [MULTI_COPY_0, MULTI_COPY_1, MULTI_COPY_2, MULTI_COPY_3, MULTI_COPY_4, MULTI_COPY_5, MULTI_COPY_6, MULTI_COPY_7, MULTI_COPY_8, MULTI_COPY_9];
